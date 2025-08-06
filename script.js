@@ -166,104 +166,191 @@ const shippingCalculator = {
     
     // 거리 계산 (출발지별)
     estimateDistance: function(departure, destination) {
+        // 주소를 소문자로 변환하여 대소문자 구분 없이 매칭
+        const dest = destination.toLowerCase();
+        console.log('거리 계산 - 목적지:', dest);
+        
         // 더 정확한 거리 추정 로직
         if (departure === 'gangnam') {
             // 서울 강남구에서 출발
-            if (destination.includes('강남')) {
+            if (dest.includes('강남구') || (dest.includes('서울') && dest.includes('강남'))) {
                 return 5; // 강남구 내
-            } else if (destination.includes('송파') || destination.includes('서초')) {
+            } else if (dest.includes('송파구') || dest.includes('송파동') || dest.includes('서초구') || dest.includes('서초동')) {
                 return 8; // 인접 구
-            } else if (destination.includes('서울')) {
-                if (destination.includes('강서') || destination.includes('은평') || destination.includes('노원')) {
+            } else if (dest.includes('서울특별시') || dest.includes('서울시') || dest.includes('서울 ')) {
+                if (dest.includes('강서구') || dest.includes('은평구') || dest.includes('노원구') || dest.includes('도봉구')) {
                     return 25; // 서울 외곽
                 }
+                if (dest.includes('종로구') || dest.includes('중구') || dest.includes('용산구')) {
+                    return 12; // 서울 중심부
+                }
                 return 15; // 서울 내 다른 지역
-            } else if (destination.includes('성남') || destination.includes('분당')) {
+            } else if (dest.includes('성남시') || dest.includes('분당구') || dest.includes('성남 ')) {
                 return 20; // 인접 지역
-            } else if (destination.includes('과천') || destination.includes('하남')) {
-                return 15; // 가까운 경기 지역
-            } else if (destination.includes('수원')) {
+            } else if (dest.includes('과천시') || dest.includes('과천 ')) {
+                return 12; // 과천
+            } else if (dest.includes('하남시') || dest.includes('하남 ')) {
+                return 18; // 하남
+            } else if (dest.includes('수원시') || dest.includes('수원 ')) {
                 return 40; // 수원
-            } else if (destination.includes('용인')) {
+            } else if (dest.includes('용인시') || dest.includes('용인 ')) {
                 return 35; // 용인
-            } else if (destination.includes('화성')) {
+            } else if (dest.includes('화성시') || dest.includes('화성 ')) {
                 return 50; // 화성
-            } else if (destination.includes('평택') || destination.includes('안성')) {
+            } else if (dest.includes('평택시') || dest.includes('평택 ') || dest.includes('안성시') || dest.includes('안성 ')) {
                 return 65; // 경기 남부
-            } else if (destination.includes('광주') && destination.includes('경기')) {
+            } else if ((dest.includes('광주시') || dest.includes('광주 ')) && (dest.includes('경기도') || dest.includes('경기 '))) {
                 return 45; // 경기 광주
-            } else if (destination.includes('이천')) {
+            } else if (dest.includes('이천시') || dest.includes('이천 ')) {
                 return 55; // 이천
-            } else if (destination.includes('파주') || destination.includes('고양')) {
+            } else if (dest.includes('파주시') || dest.includes('파주 ') || dest.includes('고양시') || dest.includes('고양 ')) {
                 return 35; // 경기 북부
-            } else if (destination.includes('인천')) {
+            } else if (dest.includes('안양시') || dest.includes('안양 ')) {
+                return 25; // 안양
+            } else if (dest.includes('구리시') || dest.includes('구리 ')) {
+                return 20; // 구리
+            } else if (dest.includes('남양주시') || dest.includes('남양주 ')) {
+                return 30; // 남양주
+            } else if (dest.includes('의정부시') || dest.includes('의정부 ')) {
+                return 30; // 의정부
+            } else if (dest.includes('시흥시') || dest.includes('시흥 ')) {
+                return 35; // 시흥
+            } else if (dest.includes('광명시') || dest.includes('광명 ')) {
+                return 20; // 광명
+            } else if (dest.includes('부천시') || dest.includes('부천 ')) {
+                return 25; // 부천
+            } else if (dest.includes('인천광역시') || dest.includes('인천시') || dest.includes('인천 ')) {
                 return 40;
-            } else if (destination.includes('부산')) {
+            } else if (dest.includes('부산광역시') || dest.includes('부산시') || dest.includes('부산 ')) {
                 return 325; // 부산
-            } else if (destination.includes('대구')) {
+            } else if (dest.includes('대구광역시') || dest.includes('대구시') || dest.includes('대구 ')) {
                 return 237; // 대구
-            } else if (destination.includes('대전')) {
+            } else if (dest.includes('대전광역시') || dest.includes('대전시') || dest.includes('대전 ')) {
                 return 140; // 대전
-            } else if (destination.includes('광주') && !destination.includes('경기')) {
+            } else if (dest.includes('광주광역시') || (dest.includes('광주') && !dest.includes('경기'))) {
                 return 268; // 전라도 광주
-            } else if (destination.includes('제주')) {
+            } else if (dest.includes('울산광역시') || dest.includes('울산시') || dest.includes('울산 ')) {
+                return 300; // 울산
+            } else if (dest.includes('세종특별자치시') || dest.includes('세종시') || dest.includes('세종 ')) {
+                return 120; // 세종
+            } else if (dest.includes('제주특별자치도') || dest.includes('제주도') || dest.includes('제주 ')) {
                 return 60; // 제주도 (항공/선박)
-            } else if (destination.includes('경기')) {
+            } else if (dest.includes('경기도') || dest.includes('경기 ')) {
                 return 30; // 경기 기타
+            } else {
+                // 기타 지역 - 지역명이 명확하지 않은 경우
+                console.log('거리 계산 - 기타 지역:', destination);
+                return 20; // 기본값을 더 합리적으로 조정
+            }
+        } else if (departure === 'gwangju') {
+            // 경기도 광주시에서 출발
+            if ((dest.includes('광주시') || dest.includes('광주 ')) && (dest.includes('경기도') || dest.includes('경기 '))) {
+                return 5; // 광주시 내
+            } else if (dest.includes('성남시') || dest.includes('분당구') || dest.includes('성남 ')) {
+                return 20; // 성남/분당
+            } else if (dest.includes('용인시') || dest.includes('용인 ')) {
+                return 25; // 용인
+            } else if (dest.includes('이천시') || dest.includes('이천 ')) {
+                return 15; // 이천
+            } else if (dest.includes('하남시') || dest.includes('하남 ')) {
+                return 25; // 하남
+            } else if (dest.includes('화성시') || dest.includes('화성 ')) {
+                return 45; // 화성시까지
+            } else if (dest.includes('수원시') || dest.includes('수원 ')) {
+                return 35; // 수원시까지
+            } else if (dest.includes('안양시') || dest.includes('안양 ')) {
+                return 25; // 안양
+            } else if (dest.includes('과천시') || dest.includes('과천 ')) {
+                return 30; // 과천
+            } else if (dest.includes('의왕시') || dest.includes('의왕 ')) {
+                return 25; // 의왕
+            } else if (dest.includes('군포시') || dest.includes('군포 ')) {
+                return 28; // 군포
+            } else if (dest.includes('구리시') || dest.includes('구리 ')) {
+                return 35; // 구리
+            } else if (dest.includes('남양주시') || dest.includes('남양주 ')) {
+                return 40; // 남양주
+            } else if (dest.includes('강남구') || dest.includes('송파구')) {
+                return 35; // 서울 동남부
+            } else if (dest.includes('서초구')) {
+                return 40; // 서초
+            } else if (dest.includes('서울특별시') || dest.includes('서울시') || dest.includes('서울 ')) {
+                if (dest.includes('강서구') || dest.includes('은평구') || dest.includes('노원구') || dest.includes('도봉구')) {
+                    return 50; // 서울 외곽
+                }
+                return 45; // 서울 기타
+            } else if (dest.includes('평택시') || dest.includes('평택 ') || dest.includes('안성시') || dest.includes('안성 ')) {
+                return 50; // 경기 남부
+            } else if (dest.includes('오산시') || dest.includes('오산 ')) {
+                return 40; // 오산
+            } else if (dest.includes('여주시') || dest.includes('여주 ')) {
+                return 35; // 여주
+            } else if (dest.includes('양평군') || dest.includes('양평 ')) {
+                return 45; // 양평
+            } else if (dest.includes('가평군') || dest.includes('가평 ')) {
+                return 60; // 가평
+            } else if (dest.includes('파주시') || dest.includes('파주 ') || dest.includes('고양시') || dest.includes('고양 ')) {
+                return 55; // 경기 북부
+            } else if (dest.includes('김포시') || dest.includes('김포 ')) {
+                return 50; // 김포
+            } else if (dest.includes('부천시') || dest.includes('부천 ')) {
+                return 40; // 부천
+            } else if (dest.includes('시흥시') || dest.includes('시흥 ')) {
+                return 40; // 시흥
+            } else if (dest.includes('광명시') || dest.includes('광명 ')) {
+                return 35; // 광명
+            } else if (dest.includes('인천광역시') || dest.includes('인천시') || dest.includes('인천 ')) {
+                return 50;
+            } else if (dest.includes('춘천시') || dest.includes('춘천 ')) {
+                return 85; // 춘천
+            } else if (dest.includes('원주시') || dest.includes('원주 ')) {
+                return 90; // 원주
+            } else if (dest.includes('강릉시') || dest.includes('강릉 ')) {
+                return 180; // 강릉
+            } else if (dest.includes('청주시') || dest.includes('청주 ')) {
+                return 120; // 청주
+            } else if (dest.includes('천안시') || dest.includes('천안 ')) {
+                return 90; // 천안
+            } else if (dest.includes('부산광역시') || dest.includes('부산시') || dest.includes('부산 ')) {
+                return 350; // 부산
+            } else if (dest.includes('대구광역시') || dest.includes('대구시') || dest.includes('대구 ')) {
+                return 260; // 대구
+            } else if (dest.includes('대전광역시') || dest.includes('대전시') || dest.includes('대전 ')) {
+                return 160; // 대전
+            } else if (dest.includes('광주광역시') || (dest.includes('광주') && !dest.includes('경기'))) {
+                return 290; // 전라도 광주
+            } else if (dest.includes('울산광역시') || dest.includes('울산시') || dest.includes('울산 ')) {
+                return 320; // 울산
+            } else if (dest.includes('세종특별자치시') || dest.includes('세종시') || dest.includes('세종 ')) {
+                return 140; // 세종
+            } else if (dest.includes('전주시') || dest.includes('전주 ')) {
+                return 220; // 전주
+            } else if (dest.includes('포항시') || dest.includes('포항 ')) {
+                return 280; // 포항
+            } else if (dest.includes('창원시') || dest.includes('창원 ')) {
+                return 320; // 창원
+            } else if (dest.includes('제주특별자치도') || dest.includes('제주도') || dest.includes('제주 ')) {
+                return 60; // 제주도
+            } else if (dest.includes('경기도') || dest.includes('경기 ')) {
+                return 30; // 경기 기타
+            } else if (dest.includes('강원도') || dest.includes('강원 ')) {
+                return 120; // 강원 기타
+            } else if (dest.includes('충청북도') || dest.includes('충북')) {
+                return 130; // 충북 기타
+            } else if (dest.includes('충청남도') || dest.includes('충남')) {
+                return 120; // 충남 기타
+            } else if (dest.includes('전라북도') || dest.includes('전북')) {
+                return 230; // 전북 기타
+            } else if (dest.includes('전라남도') || dest.includes('전남')) {
+                return 280; // 전남 기타
+            } else if (dest.includes('경상북도') || dest.includes('경북')) {
+                return 240; // 경북 기타
+            } else if (dest.includes('경상남도') || dest.includes('경남')) {
+                return 300; // 경남 기타
             } else {
                 // 기타 지역 - 지역명이 명확하지 않은 경우
                 console.log('거리 계산 - 기타 지역:', destination);
                 return 25; // 기본값을 더 합리적으로 조정
-            }
-        } else if (departure === 'gwangju') {
-            // 경기도 광주시에서 출발
-            if (destination.includes('광주') && destination.includes('경기')) {
-                return 5; // 광주시 내
-            } else if (destination.includes('성남') || destination.includes('분당')) {
-                return 20; // 성남/분당
-            } else if (destination.includes('용인')) {
-                return 25; // 용인
-            } else if (destination.includes('이천')) {
-                return 15; // 이천
-            } else if (destination.includes('하남')) {
-                return 25; // 하남
-            } else if (destination.includes('화성')) {
-                return 45; // 화성시까지
-            } else if (destination.includes('수원')) {
-                return 35; // 수원시까지
-            } else if (destination.includes('강남') || destination.includes('송파')) {
-                return 35; // 서울 동남부
-            } else if (destination.includes('서초')) {
-                return 40; // 서초
-            } else if (destination.includes('서울')) {
-                if (destination.includes('강서') || destination.includes('은평') || destination.includes('노원')) {
-                    return 50; // 서울 외곽
-                }
-                return 45; // 서울 기타
-            } else if (destination.includes('안양') || destination.includes('과천')) {
-                return 30; // 안양/과천
-            } else if (destination.includes('평택') || destination.includes('안성')) {
-                return 50; // 경기 남부
-            } else if (destination.includes('파주') || destination.includes('고양')) {
-                return 55; // 경기 북부
-            } else if (destination.includes('인천')) {
-                return 50;
-            } else if (destination.includes('부산')) {
-                return 350; // 부산
-            } else if (destination.includes('대구')) {
-                return 260; // 대구
-            } else if (destination.includes('대전')) {
-                return 160; // 대전
-            } else if (destination.includes('광주') && !destination.includes('경기')) {
-                return 290; // 전라도 광주
-            } else if (destination.includes('제주')) {
-                return 60; // 제주도
-            } else if (destination.includes('경기')) {
-                return 30; // 경기 기타
-            } else {
-                // 기타 지역 - 지역명이 명확하지 않은 경우
-                console.log('거리 계산 - 기타 지역:', destination);
-                return 30; // 기본값을 더 합리적으로 조정
             }
         }
         
@@ -511,6 +598,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 카카오T 퀵 - 강남 출발
         const gangnamDistance = shippingCalculator.estimateDistance('gangnam', fullAddress);
         console.log('강남 출발 거리:', gangnamDistance, 'km, 주소:', fullAddress);
+        console.log('주소 분석:', {
+            includes서울: fullAddress.includes('서울'),
+            includes경기: fullAddress.includes('경기'),
+            includes강남: fullAddress.includes('강남'),
+            전체주소: fullAddress
+        });
         const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(width, length, height, weight, gangnamDistance);
         if (!kakaoGangnamResult.error) {
             const result = calculateWithMarkup(kakaoGangnamResult.fee);
