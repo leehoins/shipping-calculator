@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
         path: url.pathname,
         method: 'GET',
         headers: {
-          'Authorization': `API-Key ${KAKAO_API_CONFIG.API_KEY}`,
+          'Authorization': `Bearer ${KAKAO_API_CONFIG.API_KEY}`,
           'vendor': KAKAO_API_CONFIG.VENDOR_ID
         }
       };
@@ -74,7 +74,7 @@ exports.handler = async (event, context) => {
           authCheck: data,
           status: response.status,
           debug: {
-            apiKeyFormat: 'API-Key prefix',
+            apiKeyFormat: 'Bearer token',
             vendorId: KAKAO_API_CONFIG.VENDOR_ID
           }
         })
