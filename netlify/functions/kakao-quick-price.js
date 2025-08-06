@@ -65,7 +65,7 @@ exports.handler = async (event, context) => {
       const signkey = generateSignature(timestamp, nonce, KAKAO_API_CONFIG.API_KEY);
       const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
 
-      const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-sandbox-service/v1/auth/check`);
+      const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-sandbox-service/api/v1/auth/check`);
       const options = {
         hostname: url.hostname,
         path: url.pathname,
