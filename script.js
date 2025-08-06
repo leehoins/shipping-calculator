@@ -183,20 +183,58 @@ const shippingCalculator = {
     
     // 거리 계산 (출발지별)
     estimateDistance: function(departure, destination) {
-        // 간단한 거리 추정 로직
-        if (departure === 'gangnam' && destination.includes('강남')) {
-            return 5; // 강남 내 배송
-        } else if (departure === 'gwangju' && destination.includes('광주')) {
-            return 5; // 광주 내 배송
-        } else if (destination.includes('서울')) {
-            return departure === 'gangnam' ? 10 : 30; // 서울 내/서울까지
-        } else if (destination.includes('경기')) {
-            return departure === 'gwangju' ? 10 : 25; // 경기 내/경기까지
-        } else if (destination.includes('제주')) {
-            return 50; // 제주도
-        } else {
-            return 20; // 기타 지역
+        // 더 정확한 거리 추정 로직
+        if (departure === 'gangnam') {
+            // 서울 강남구에서 출발
+            if (destination.includes('강남')) {
+                return 5; // 강남구 내
+            } else if (destination.includes('서울')) {
+                return 15; // 서울 내 다른 지역
+            } else if (destination.includes('성남') || destination.includes('분당')) {
+                return 20; // 인접 지역
+            } else if (destination.includes('경기')) {
+                if (destination.includes('화성') || destination.includes('용인') || destination.includes('수원')) {
+                    return 40; // 경기 남부
+                } else if (destination.includes('광주') || destination.includes('이천')) {
+                    return 50; // 경기 동남부
+                } else {
+                    return 30; // 경기 기타
+                }
+            } else if (destination.includes('인천')) {
+                return 40;
+            } else if (destination.includes('제주')) {
+                return 60; // 제주도 (항공/선박)
+            } else {
+                return 35; // 기타 지역
+            }
+        } else if (departure === 'gwangju') {
+            // 경기도 광주시에서 출발
+            if (destination.includes('광주') && destination.includes('경기')) {
+                return 5; // 광주시 내
+            } else if (destination.includes('성남') || destination.includes('용인')) {
+                return 25; // 인접 지역
+            } else if (destination.includes('화성')) {
+                return 35; // 화성시까지
+            } else if (destination.includes('수원')) {
+                return 30; // 수원시까지
+            } else if (destination.includes('서울')) {
+                if (destination.includes('강남') || destination.includes('송파')) {
+                    return 35; // 서울 동남부
+                } else {
+                    return 40; // 서울 기타
+                }
+            } else if (destination.includes('경기')) {
+                return 30; // 경기 기타
+            } else if (destination.includes('인천')) {
+                return 50;
+            } else if (destination.includes('제주')) {
+                return 60; // 제주도
+            } else {
+                return 40; // 기타 지역
+            }
         }
+        
+        return 30; // 기본값
     }
 };
 
