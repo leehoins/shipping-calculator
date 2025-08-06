@@ -106,7 +106,7 @@ const shippingCalculator = {
                 error: "카카오T 퀵 서비스 이용 불가 (크기/중량 초과)",
                 fee: 0,
                 distance: 0,
-                vehicleType: "없음"
+                vehicleType: "서비스 불가"
             };
         }
         
@@ -225,7 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
         markupSlider: document.getElementById('markupSlider'),
         markupInput: document.getElementById('markupInput'),
         calculateBtn: document.getElementById('calculateBtn'),
-        resultSection: document.getElementById('resultSection')
+        resultSection: document.getElementById('resultSection'),
+        vehiclePreview: document.getElementById('vehiclePreview'),
+        vehiclePreviewText: document.getElementById('vehiclePreviewText')
     };
 
     // 마크업 슬라이더와 입력 필드 동기화
@@ -236,6 +238,54 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.markupInput.addEventListener('input', function() {
         elements.markupSlider.value = this.value;
     });
+
+    // 실시간 차량 유형 미리보기 함수
+    function updateVehiclePreview() {
+        const widthMm = parseFloat(elements.width.value) || 0;
+        const lengthMm = parseFloat(elements.length.value) || 0;
+        const heightMm = parseFloat(elements.height.value) || 0;
+        const weight = parseFloat(elements.weight.value) || 0;
+        
+        // mm를 cm로 변환
+        const width = widthMm / 10;
+        const length = lengthMm / 10;
+        const height = heightMm / 10;
+        const totalSize = width + length + height;
+        
+        if (width <= 0 && length <= 0 && height <= 0 && weight <= 0) {
+            elements.vehiclePreview.style.display = 'none';
+            return;
+        }
+        
+        let selectedVehicle = '';
+        let vehicleInfo = '';
+        
+        if (weight <= 20 && totalSize <= 140) {
+            selectedVehicle = '퀵/바이크';
+            vehicleInfo = '가벼운 소형 물품에 적합 (20kg 이하, 합계 140cm 이하)';
+        } else if (weight <= 450 && width <= 110 && length <= 140 && height <= 160) {
+            selectedVehicle = '다마스';
+            vehicleInfo = '중형 물품 배송 (450kg 이하, 110×140×160cm)';
+        } else if (weight <= 500 && width <= 160 && length <= 220 && height <= 280) {
+            selectedVehicle = '라보';
+            vehicleInfo = '대형 물품 배송 (500kg 이하, 160×220×280cm)';
+        } else if (weight <= 1000 && width <= 110 && length <= 130 && height <= 180) {
+            selectedVehicle = '1톤';
+            vehicleInfo = '중량 화물 배송 (1,000kg 이하, 110×130×180cm)';
+        } else {
+            selectedVehicle = '서비스 불가';
+            vehicleInfo = '크기 또는 중량이 카카오T 퀵 서비스 한계를 초과했습니다.';
+        }
+        
+        elements.vehiclePreviewText.innerHTML = `<strong style="color: #3498db;">${selectedVehicle}</strong> - ${vehicleInfo}`;
+        elements.vehiclePreview.style.display = 'block';
+    }
+
+    // 입력값 변경 시 실시간 미리보기 업데이트
+    elements.width.addEventListener('input', updateVehiclePreview);
+    elements.length.addEventListener('input', updateVehiclePreview);
+    elements.height.addEventListener('input', updateVehiclePreview);
+    elements.weight.addEventListener('input', updateVehiclePreview);
 
     // 다음 우편번호 서비스를 이용한 주소 검색
     if (elements.addressSearchBtn) {
@@ -381,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGangnamMarkup').textContent = '-';
             document.getElementById('kakaoGangnamTotal').textContent = '-';
             document.getElementById('kakaoGangnamDistance').textContent = '-';
-            document.getElementById('kakaoGangnamVehicleType').textContent = '-';
+            document.getElementById('kakaoGangnamVehicleType').textContent = kakaoGangnamResult.vehicleType || '서비스 불가';
             document.getElementById('kakaoGangnamCard').classList.add('disabled');
         }
         
@@ -403,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGwangjuMarkup').textContent = '-';
             document.getElementById('kakaoGwangjuTotal').textContent = '-';
             document.getElementById('kakaoGwangjuDistance').textContent = '-';
-            document.getElementById('kakaoGwangjuVehicleType').textContent = '-';
+            document.getElementById('kakaoGwangjuVehicleType').textContent = kakaoGwangjuResult.vehicleType || '서비스 불가';
             document.getElementById('kakaoGwangjuCard').classList.add('disabled');
         }
         
