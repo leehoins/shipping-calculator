@@ -1,4 +1,6 @@
 // Netlify Function for KakaoT Quick Price API
+const crypto = require('crypto');
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
@@ -33,7 +35,7 @@ exports.handler = async (event, context) => {
       API_KEY: process.env.KAKAO_QUICK_API_KEY || '55cef59b-8544-4733-9b4d-00ebc08736b2',
       VENDOR_ID: process.env.KAKAO_QUICK_VENDOR_ID || 'VZQSH2',
       // Sandbox URL - 실제 프로덕션 URL로 변경 필요할 수 있음
-      BASE_URL: 'https://open-api-logistics.kakaomobility.com/goa-service/api/v2'
+      BASE_URL: 'https://open-api-logistics.kakaomobility.com/goa-sandbox-service/api/v2'
     };
 
     console.log('API Config:', {
@@ -44,12 +46,27 @@ exports.handler = async (event, context) => {
 
     console.log('Request body:', JSON.stringify(body, null, 2));
 
+    // Generate authentication
+    const timestamp = Date.now();
+    const nonce = Math.floor(Math.random() * 1000000);
+    const signkey = crypto.createHash('sha256')
+      .update(`${timestamp}${nonce}${KAKAO_API_CONFIG.API_KEY}`)
+      .digest('hex');
+    const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
+
+    console.log('Auth details:', {
+      timestamp,
+      nonce,
+      signkey: signkey.substring(0, 10) + '...',
+      authorization: authorization.substring(0, 20) + '...'
+    });
+
     // Make request to KakaoT API
     const response = await fetch(`${KAKAO_API_CONFIG.BASE_URL}/orders/price`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'authorization': KAKAO_API_CONFIG.API_KEY,
+        'Authorization': authorization,
         'vendor': KAKAO_API_CONFIG.VENDOR_ID
       },
       body: JSON.stringify(body)
