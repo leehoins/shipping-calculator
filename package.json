@@ -1,0 +1,12 @@
+{
+  "name": "shipping-calculator",
+  "version": "1.0.0",
+  "description": "원오디너리맨션 운임료 계산 서비스",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

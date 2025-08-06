@@ -1,2 +1,5 @@
 .DS_Store
 start-server.sh
+node_modules/
+.env
+.netlify/

@@ -26,12 +26,15 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
             }
         };
 
-        const response = await fetch(KAKAO_API_CONFIG.BASE_URL + KAKAO_API_CONFIG.ENDPOINTS.PRICE, {
+        // Netlify Function 엔드포인트 사용 (로컬 및 프로덕션 자동 감지)
+        const functionUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8888/.netlify/functions/kakao-quick-price'
+            : '/.netlify/functions/kakao-quick-price';
+
+        const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': KAKAO_API_CONFIG.API_KEY,
-                'vendor': KAKAO_API_CONFIG.VENDOR_ID
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(requestBody)
         });
@@ -67,7 +70,13 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
 async function getCoordinates(address) {
     try {
         // 카카오 REST API 키가 필요합니다
-        const KAKAO_REST_KEY = 'YOUR_KAKAO_REST_API_KEY'; // 별도로 발급 필요
+        const KAKAO_REST_KEY = '65c0cdb0a66e605b8019d180de3e99d1'; // TODO: 여기에 REST API 키 입력
+        
+        console.log('카카오 API 호출:', {
+            address: address,
+            key: KAKAO_REST_KEY.substring(0, 10) + '...',
+            url: `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`
+        });
         
         const response = await fetch(
             `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`,

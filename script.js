@@ -505,8 +505,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // API 사용 가능 여부 확인
         const useAPI = typeof calculateKakaoQuickFareWithAPI !== 'undefined' && typeof KAKAO_API_CONFIG !== 'undefined' && KAKAO_API_CONFIG.API_KEY;
         
+        console.log('API 체크:', {
+            calculateKakaoQuickFareWithAPI: typeof calculateKakaoQuickFareWithAPI,
+            KAKAO_API_CONFIG: typeof KAKAO_API_CONFIG,
+            API_KEY: typeof KAKAO_API_CONFIG !== 'undefined' ? KAKAO_API_CONFIG.API_KEY : 'undefined',
+            useAPI: useAPI
+        });
+        
         // API 상태 표시
-        document.getElementById('apiStatus').textContent = useAPI ? 'API 연동됨' : '로컬 계산';
+        const apiStatusElement = document.getElementById('apiStatus');
+        if (apiStatusElement) {
+            apiStatusElement.textContent = '하이브리드 (주소 API + 로컬 계산)';
+            console.log('API 상태 업데이트:', apiStatusElement.textContent);
+        } else {
+            console.error('apiStatus 요소를 찾을 수 없습니다');
+        }
         
         if (useAPI) {
             // API를 통한 실시간 요금 조회
