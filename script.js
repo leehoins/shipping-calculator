@@ -171,49 +171,99 @@ const shippingCalculator = {
             // 서울 강남구에서 출발
             if (destination.includes('강남')) {
                 return 5; // 강남구 내
+            } else if (destination.includes('송파') || destination.includes('서초')) {
+                return 8; // 인접 구
             } else if (destination.includes('서울')) {
+                if (destination.includes('강서') || destination.includes('은평') || destination.includes('노원')) {
+                    return 25; // 서울 외곽
+                }
                 return 15; // 서울 내 다른 지역
             } else if (destination.includes('성남') || destination.includes('분당')) {
                 return 20; // 인접 지역
-            } else if (destination.includes('경기')) {
-                if (destination.includes('화성') || destination.includes('용인') || destination.includes('수원')) {
-                    return 40; // 경기 남부
-                } else if (destination.includes('광주') || destination.includes('이천')) {
-                    return 50; // 경기 동남부
-                } else {
-                    return 30; // 경기 기타
-                }
+            } else if (destination.includes('과천') || destination.includes('하남')) {
+                return 15; // 가까운 경기 지역
+            } else if (destination.includes('수원')) {
+                return 40; // 수원
+            } else if (destination.includes('용인')) {
+                return 35; // 용인
+            } else if (destination.includes('화성')) {
+                return 50; // 화성
+            } else if (destination.includes('평택') || destination.includes('안성')) {
+                return 65; // 경기 남부
+            } else if (destination.includes('광주') && destination.includes('경기')) {
+                return 45; // 경기 광주
+            } else if (destination.includes('이천')) {
+                return 55; // 이천
+            } else if (destination.includes('파주') || destination.includes('고양')) {
+                return 35; // 경기 북부
             } else if (destination.includes('인천')) {
                 return 40;
+            } else if (destination.includes('부산')) {
+                return 325; // 부산
+            } else if (destination.includes('대구')) {
+                return 237; // 대구
+            } else if (destination.includes('대전')) {
+                return 140; // 대전
+            } else if (destination.includes('광주') && !destination.includes('경기')) {
+                return 268; // 전라도 광주
             } else if (destination.includes('제주')) {
                 return 60; // 제주도 (항공/선박)
+            } else if (destination.includes('경기')) {
+                return 30; // 경기 기타
             } else {
-                return 35; // 기타 지역
+                // 기타 지역 - 지역명이 명확하지 않은 경우
+                console.log('거리 계산 - 기타 지역:', destination);
+                return 25; // 기본값을 더 합리적으로 조정
             }
         } else if (departure === 'gwangju') {
             // 경기도 광주시에서 출발
             if (destination.includes('광주') && destination.includes('경기')) {
                 return 5; // 광주시 내
-            } else if (destination.includes('성남') || destination.includes('용인')) {
-                return 25; // 인접 지역
+            } else if (destination.includes('성남') || destination.includes('분당')) {
+                return 20; // 성남/분당
+            } else if (destination.includes('용인')) {
+                return 25; // 용인
+            } else if (destination.includes('이천')) {
+                return 15; // 이천
+            } else if (destination.includes('하남')) {
+                return 25; // 하남
             } else if (destination.includes('화성')) {
-                return 35; // 화성시까지
+                return 45; // 화성시까지
             } else if (destination.includes('수원')) {
-                return 30; // 수원시까지
+                return 35; // 수원시까지
+            } else if (destination.includes('강남') || destination.includes('송파')) {
+                return 35; // 서울 동남부
+            } else if (destination.includes('서초')) {
+                return 40; // 서초
             } else if (destination.includes('서울')) {
-                if (destination.includes('강남') || destination.includes('송파')) {
-                    return 35; // 서울 동남부
-                } else {
-                    return 40; // 서울 기타
+                if (destination.includes('강서') || destination.includes('은평') || destination.includes('노원')) {
+                    return 50; // 서울 외곽
                 }
-            } else if (destination.includes('경기')) {
-                return 30; // 경기 기타
+                return 45; // 서울 기타
+            } else if (destination.includes('안양') || destination.includes('과천')) {
+                return 30; // 안양/과천
+            } else if (destination.includes('평택') || destination.includes('안성')) {
+                return 50; // 경기 남부
+            } else if (destination.includes('파주') || destination.includes('고양')) {
+                return 55; // 경기 북부
             } else if (destination.includes('인천')) {
                 return 50;
+            } else if (destination.includes('부산')) {
+                return 350; // 부산
+            } else if (destination.includes('대구')) {
+                return 260; // 대구
+            } else if (destination.includes('대전')) {
+                return 160; // 대전
+            } else if (destination.includes('광주') && !destination.includes('경기')) {
+                return 290; // 전라도 광주
             } else if (destination.includes('제주')) {
                 return 60; // 제주도
+            } else if (destination.includes('경기')) {
+                return 30; // 경기 기타
             } else {
-                return 40; // 기타 지역
+                // 기타 지역 - 지역명이 명확하지 않은 경우
+                console.log('거리 계산 - 기타 지역:', destination);
+                return 30; // 기본값을 더 합리적으로 조정
             }
         }
         
@@ -302,6 +352,33 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.height.addEventListener('input', updateVehiclePreview);
     elements.weight.addEventListener('input', updateVehiclePreview);
 
+    // 주소 변경 시 결과 초기화
+    function clearResults() {
+        // 결과 섹션 숨기기
+        elements.resultSection.style.display = 'none';
+        
+        // 모든 결과값 초기화
+        const resultIds = [
+            'postOfficeBase', 'postOfficeMarkup', 'postOfficeTotal',
+            'gyeongdongBase', 'gyeongdongMarkup', 'gyeongdongTotal',
+            'kakaoGangnamBase', 'kakaoGangnamMarkup', 'kakaoGangnamTotal', 
+            'kakaoGangnamDistance', 'kakaoGangnamVehicleType', 'kakaoGangnamPriceDetail',
+            'kakaoGwangjuBase', 'kakaoGwangjuMarkup', 'kakaoGwangjuTotal',
+            'kakaoGwangjuDistance', 'kakaoGwangjuVehicleType', 'kakaoGwangjuPriceDetail'
+        ];
+        
+        resultIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = '-';
+            }
+        });
+    }
+
+    // 주소 입력값 변경 시 결과 초기화
+    elements.address.addEventListener('input', clearResults);
+    elements.detailAddress.addEventListener('input', clearResults);
+
     // 다음 우편번호 서비스를 이용한 주소 검색
     if (elements.addressSearchBtn) {
         elements.addressSearchBtn.addEventListener('click', function() {
@@ -339,6 +416,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 상세주소 입력 필드 표시 및 포커스
                 elements.detailAddress.style.display = 'block';
                 elements.detailAddress.focus();
+                
+                // 주소가 변경되었으므로 기존 계산 결과 초기화
+                clearResults();
             },
             // 사용자가 팝업을 닫았을 때
             onclose: function(state) {
