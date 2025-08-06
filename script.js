@@ -88,20 +88,40 @@ const shippingCalculator = {
         let vehicleType = null;
         let vehicleName = '';
         
-        // 차량 선택 로직
+        // 차량 선택 로직 - 짐을 돌려서 넣을 수 있으므로 모든 방향 고려
+        const dimensions = [width, length, height].sort((a, b) => b - a); // 큰 값부터 정렬
+        
         if (weight <= 20 && totalSize <= 140) {
             vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.BIKE;
             vehicleName = vehicleType.name;
-        } else if (weight <= 450 && width <= 110 && length <= 140 && height <= 160) {
-            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.DAMAS;
-            vehicleName = vehicleType.name;
-        } else if (weight <= 500 && width <= 160 && length <= 220 && height <= 280) {
-            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.LABO;
-            vehicleName = vehicleType.name;
-        } else if (weight <= 1000 && width <= 110 && length <= 130 && height <= 180) {
-            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.TRUCK_1T;
-            vehicleName = vehicleType.name;
-        } else {
+        } else if (weight <= 450) {
+            // 다마스: 110x160x110cm - 어떤 방향으로든 들어가는지 확인
+            const damasLimits = [110, 160, 110].sort((a, b) => b - a);
+            if (dimensions[0] <= damasLimits[0] && dimensions[1] <= damasLimits[1] && dimensions[2] <= damasLimits[2]) {
+                vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.DAMAS;
+                vehicleName = vehicleType.name;
+            }
+        }
+        
+        if (!vehicleType && weight <= 500) {
+            // 라보: 140x220x130cm - 어떤 방향으로든 들어가는지 확인
+            const laboLimits = [140, 220, 130].sort((a, b) => b - a);
+            if (dimensions[0] <= laboLimits[0] && dimensions[1] <= laboLimits[1] && dimensions[2] <= laboLimits[2]) {
+                vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.LABO;
+                vehicleName = vehicleType.name;
+            }
+        }
+        
+        if (!vehicleType && weight <= 1000) {
+            // 1톤: 160x280x180cm - 어떤 방향으로든 들어가는지 확인
+            const truckLimits = [160, 280, 180].sort((a, b) => b - a);
+            if (dimensions[0] <= truckLimits[0] && dimensions[1] <= truckLimits[1] && dimensions[2] <= truckLimits[2]) {
+                vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.TRUCK_1T;
+                vehicleName = vehicleType.name;
+            }
+        }
+        
+        if (!vehicleType) {
             return {
                 error: "카카오T 퀵 서비스 이용 불가 (크기/중량 초과)",
                 fee: 0,
@@ -170,191 +190,59 @@ const shippingCalculator = {
         const dest = destination.toLowerCase();
         console.log('거리 계산 - 목적지:', dest);
         
-        // 더 정확한 거리 추정 로직
-        if (departure === 'gangnam') {
-            // 서울 강남구에서 출발
-            if (dest.includes('강남구') || (dest.includes('서울') && dest.includes('강남'))) {
-                return 5; // 강남구 내
-            } else if (dest.includes('송파구') || dest.includes('송파동') || dest.includes('서초구') || dest.includes('서초동')) {
-                return 8; // 인접 구
-            } else if (dest.includes('서울특별시') || dest.includes('서울시') || dest.includes('서울 ')) {
-                if (dest.includes('강서구') || dest.includes('은평구') || dest.includes('노원구') || dest.includes('도봉구')) {
-                    return 25; // 서울 외곽
-                }
-                if (dest.includes('종로구') || dest.includes('중구') || dest.includes('용산구')) {
-                    return 12; // 서울 중심부
-                }
-                return 15; // 서울 내 다른 지역
-            } else if (dest.includes('성남시') || dest.includes('분당구') || dest.includes('성남 ')) {
-                return 20; // 인접 지역
-            } else if (dest.includes('과천시') || dest.includes('과천 ')) {
-                return 12; // 과천
-            } else if (dest.includes('하남시') || dest.includes('하남 ')) {
-                return 18; // 하남
-            } else if (dest.includes('수원시') || dest.includes('수원 ')) {
-                return 40; // 수원
-            } else if (dest.includes('용인시') || dest.includes('용인 ')) {
-                return 35; // 용인
-            } else if (dest.includes('화성시') || dest.includes('화성 ')) {
-                return 50; // 화성
-            } else if (dest.includes('평택시') || dest.includes('평택 ') || dest.includes('안성시') || dest.includes('안성 ')) {
-                return 65; // 경기 남부
-            } else if ((dest.includes('광주시') || dest.includes('광주 ')) && (dest.includes('경기도') || dest.includes('경기 '))) {
-                return 45; // 경기 광주
-            } else if (dest.includes('이천시') || dest.includes('이천 ')) {
-                return 55; // 이천
-            } else if (dest.includes('파주시') || dest.includes('파주 ') || dest.includes('고양시') || dest.includes('고양 ')) {
-                return 35; // 경기 북부
-            } else if (dest.includes('안양시') || dest.includes('안양 ')) {
-                return 25; // 안양
-            } else if (dest.includes('구리시') || dest.includes('구리 ')) {
-                return 20; // 구리
-            } else if (dest.includes('남양주시') || dest.includes('남양주 ')) {
-                return 30; // 남양주
-            } else if (dest.includes('의정부시') || dest.includes('의정부 ')) {
-                return 30; // 의정부
-            } else if (dest.includes('시흥시') || dest.includes('시흥 ')) {
-                return 35; // 시흥
-            } else if (dest.includes('광명시') || dest.includes('광명 ')) {
-                return 20; // 광명
-            } else if (dest.includes('부천시') || dest.includes('부천 ')) {
-                return 25; // 부천
-            } else if (dest.includes('인천광역시') || dest.includes('인천시') || dest.includes('인천 ')) {
-                return 40;
-            } else if (dest.includes('부산광역시') || dest.includes('부산시') || dest.includes('부산 ')) {
-                return 325; // 부산
-            } else if (dest.includes('대구광역시') || dest.includes('대구시') || dest.includes('대구 ')) {
-                return 237; // 대구
-            } else if (dest.includes('대전광역시') || dest.includes('대전시') || dest.includes('대전 ')) {
-                return 140; // 대전
-            } else if (dest.includes('광주광역시') || (dest.includes('광주') && !dest.includes('경기'))) {
-                return 268; // 전라도 광주
-            } else if (dest.includes('울산광역시') || dest.includes('울산시') || dest.includes('울산 ')) {
-                return 300; // 울산
-            } else if (dest.includes('세종특별자치시') || dest.includes('세종시') || dest.includes('세종 ')) {
-                return 120; // 세종
-            } else if (dest.includes('제주특별자치도') || dest.includes('제주도') || dest.includes('제주 ')) {
-                return 60; // 제주도 (항공/선박)
-            } else if (dest.includes('경기도') || dest.includes('경기 ')) {
-                return 30; // 경기 기타
-            } else {
-                // 기타 지역 - 지역명이 명확하지 않은 경우
-                console.log('거리 계산 - 기타 지역:', destination);
-                return 20; // 기본값을 더 합리적으로 조정
-            }
-        } else if (departure === 'gwangju') {
-            // 경기도 광주시에서 출발
-            if ((dest.includes('광주시') || dest.includes('광주 ')) && (dest.includes('경기도') || dest.includes('경기 '))) {
-                return 5; // 광주시 내
-            } else if (dest.includes('성남시') || dest.includes('분당구') || dest.includes('성남 ')) {
-                return 20; // 성남/분당
-            } else if (dest.includes('용인시') || dest.includes('용인 ')) {
-                return 25; // 용인
-            } else if (dest.includes('이천시') || dest.includes('이천 ')) {
-                return 15; // 이천
-            } else if (dest.includes('하남시') || dest.includes('하남 ')) {
-                return 25; // 하남
-            } else if (dest.includes('화성시') || dest.includes('화성 ')) {
-                return 45; // 화성시까지
-            } else if (dest.includes('수원시') || dest.includes('수원 ')) {
-                return 35; // 수원시까지
-            } else if (dest.includes('안양시') || dest.includes('안양 ')) {
-                return 25; // 안양
-            } else if (dest.includes('과천시') || dest.includes('과천 ')) {
-                return 30; // 과천
-            } else if (dest.includes('의왕시') || dest.includes('의왕 ')) {
-                return 25; // 의왕
-            } else if (dest.includes('군포시') || dest.includes('군포 ')) {
-                return 28; // 군포
-            } else if (dest.includes('구리시') || dest.includes('구리 ')) {
-                return 35; // 구리
-            } else if (dest.includes('남양주시') || dest.includes('남양주 ')) {
-                return 40; // 남양주
-            } else if (dest.includes('강남구') || dest.includes('송파구')) {
-                return 35; // 서울 동남부
-            } else if (dest.includes('서초구')) {
-                return 40; // 서초
-            } else if (dest.includes('서울특별시') || dest.includes('서울시') || dest.includes('서울 ')) {
-                if (dest.includes('강서구') || dest.includes('은평구') || dest.includes('노원구') || dest.includes('도봉구')) {
-                    return 50; // 서울 외곽
-                }
-                return 45; // 서울 기타
-            } else if (dest.includes('평택시') || dest.includes('평택 ') || dest.includes('안성시') || dest.includes('안성 ')) {
-                return 50; // 경기 남부
-            } else if (dest.includes('오산시') || dest.includes('오산 ')) {
-                return 40; // 오산
-            } else if (dest.includes('여주시') || dest.includes('여주 ')) {
-                return 35; // 여주
-            } else if (dest.includes('양평군') || dest.includes('양평 ')) {
-                return 45; // 양평
-            } else if (dest.includes('가평군') || dest.includes('가평 ')) {
-                return 60; // 가평
-            } else if (dest.includes('파주시') || dest.includes('파주 ') || dest.includes('고양시') || dest.includes('고양 ')) {
-                return 55; // 경기 북부
-            } else if (dest.includes('김포시') || dest.includes('김포 ')) {
-                return 50; // 김포
-            } else if (dest.includes('부천시') || dest.includes('부천 ')) {
-                return 40; // 부천
-            } else if (dest.includes('시흥시') || dest.includes('시흥 ')) {
-                return 40; // 시흥
-            } else if (dest.includes('광명시') || dest.includes('광명 ')) {
-                return 35; // 광명
-            } else if (dest.includes('인천광역시') || dest.includes('인천시') || dest.includes('인천 ')) {
-                return 50;
-            } else if (dest.includes('춘천시') || dest.includes('춘천 ')) {
-                return 85; // 춘천
-            } else if (dest.includes('원주시') || dest.includes('원주 ')) {
-                return 90; // 원주
-            } else if (dest.includes('강릉시') || dest.includes('강릉 ')) {
-                return 180; // 강릉
-            } else if (dest.includes('청주시') || dest.includes('청주 ')) {
-                return 120; // 청주
-            } else if (dest.includes('천안시') || dest.includes('천안 ')) {
-                return 90; // 천안
-            } else if (dest.includes('부산광역시') || dest.includes('부산시') || dest.includes('부산 ')) {
-                return 350; // 부산
-            } else if (dest.includes('대구광역시') || dest.includes('대구시') || dest.includes('대구 ')) {
-                return 260; // 대구
-            } else if (dest.includes('대전광역시') || dest.includes('대전시') || dest.includes('대전 ')) {
-                return 160; // 대전
-            } else if (dest.includes('광주광역시') || (dest.includes('광주') && !dest.includes('경기'))) {
-                return 290; // 전라도 광주
-            } else if (dest.includes('울산광역시') || dest.includes('울산시') || dest.includes('울산 ')) {
-                return 320; // 울산
-            } else if (dest.includes('세종특별자치시') || dest.includes('세종시') || dest.includes('세종 ')) {
-                return 140; // 세종
-            } else if (dest.includes('전주시') || dest.includes('전주 ')) {
-                return 220; // 전주
-            } else if (dest.includes('포항시') || dest.includes('포항 ')) {
-                return 280; // 포항
-            } else if (dest.includes('창원시') || dest.includes('창원 ')) {
-                return 320; // 창원
-            } else if (dest.includes('제주특별자치도') || dest.includes('제주도') || dest.includes('제주 ')) {
-                return 60; // 제주도
-            } else if (dest.includes('경기도') || dest.includes('경기 ')) {
-                return 30; // 경기 기타
-            } else if (dest.includes('강원도') || dest.includes('강원 ')) {
-                return 120; // 강원 기타
-            } else if (dest.includes('충청북도') || dest.includes('충북')) {
-                return 130; // 충북 기타
-            } else if (dest.includes('충청남도') || dest.includes('충남')) {
-                return 120; // 충남 기타
-            } else if (dest.includes('전라북도') || dest.includes('전북')) {
-                return 230; // 전북 기타
-            } else if (dest.includes('전라남도') || dest.includes('전남')) {
-                return 280; // 전남 기타
-            } else if (dest.includes('경상북도') || dest.includes('경북')) {
-                return 240; // 경북 기타
-            } else if (dest.includes('경상남도') || dest.includes('경남')) {
-                return 300; // 경남 기타
-            } else {
-                // 기타 지역 - 지역명이 명확하지 않은 경우
-                console.log('거리 계산 - 기타 지역:', destination);
-                return 25; // 기본값을 더 합리적으로 조정
+        // 거리 데이터 선택
+        const distanceMap = departure === 'gangnam' ? DISTANCE_DATA.fromGangnam : DISTANCE_DATA.fromGwangju;
+        
+        // 주소에서 지역명 추출 및 매칭
+        for (const [location, distance] of Object.entries(distanceMap)) {
+            if (dest.includes(location.toLowerCase())) {
+                console.log(`매칭된 지역: ${location}, 거리: ${distance}km`);
+                return distance;
             }
         }
         
-        return 30; // 기본값
+        // 시/군/구 단위로 재시도
+        const addressParts = dest.split(' ');
+        for (const part of addressParts) {
+            for (const [location, distance] of Object.entries(distanceMap)) {
+                if (location.toLowerCase().includes(part) || part.includes(location.toLowerCase())) {
+                    console.log(`부분 매칭된 지역: ${location}, 거리: ${distance}km`);
+                    return distance;
+                }
+            }
+        }
+        
+        // 광역 지역명으로 매칭 시도
+        const regionPatterns = {
+            '서울': 15,
+            '경기': 30,
+            '인천': departure === 'gangnam' ? 40 : 55,
+            '강원': departure === 'gangnam' ? 150 : 130,
+            '충북': departure === 'gangnam' ? 140 : 120,
+            '충남': departure === 'gangnam' ? 120 : 110,
+            '대전': departure === 'gangnam' ? 140 : 130,
+            '세종': departure === 'gangnam' ? 120 : 110,
+            '전북': departure === 'gangnam' ? 210 : 200,
+            '전남': departure === 'gangnam' ? 300 : 310,
+            '광주광역': departure === 'gangnam' ? 268 : 280,
+            '경북': departure === 'gangnam' ? 220 : 200,
+            '경남': departure === 'gangnam' ? 290 : 280,
+            '대구': departure === 'gangnam' ? 237 : 220,
+            '부산': departure === 'gangnam' ? 325 : 320,
+            '울산': departure === 'gangnam' ? 300 : 290,
+            '제주': departure === 'gangnam' ? 460 : 460
+        };
+        
+        for (const [region, defaultDistance] of Object.entries(regionPatterns)) {
+            if (dest.includes(region)) {
+                console.log(`광역 지역 매칭: ${region}, 기본 거리: ${defaultDistance}km`);
+                return defaultDistance;
+            }
+        }
+        
+        // 기본값
+        console.log('거리 계산 - 매칭 실패, 기본값 사용');
+        return departure === 'gangnam' ? 25 : 30;
     }
 };
 
@@ -412,19 +300,37 @@ document.addEventListener('DOMContentLoaded', function() {
         let selectedVehicle = '';
         let vehicleInfo = '';
         
+        // 짐을 돌려서 넣을 수 있으므로 모든 방향 고려
+        const dimensions = [width, length, height].sort((a, b) => b - a);
+        
         if (weight <= 20 && totalSize <= 140) {
             selectedVehicle = '퀵/바이크';
             vehicleInfo = '가벼운 소형 물품에 적합 (20kg 이하, 합계 140cm 이하)';
-        } else if (weight <= 450 && width <= 110 && length <= 140 && height <= 160) {
-            selectedVehicle = '다마스';
-            vehicleInfo = '중형 물품 배송 (450kg 이하, 110×140×160cm)';
-        } else if (weight <= 500 && width <= 160 && length <= 220 && height <= 280) {
-            selectedVehicle = '라보';
-            vehicleInfo = '대형 물품 배송 (500kg 이하, 160×220×280cm)';
-        } else if (weight <= 1000 && width <= 110 && length <= 130 && height <= 180) {
-            selectedVehicle = '1톤';
-            vehicleInfo = '중량 화물 배송 (1,000kg 이하, 110×130×180cm)';
-        } else {
+        } else if (weight <= 450) {
+            const damasLimits = [110, 160, 110].sort((a, b) => b - a);
+            if (dimensions[0] <= damasLimits[0] && dimensions[1] <= damasLimits[1] && dimensions[2] <= damasLimits[2]) {
+                selectedVehicle = '다마스';
+                vehicleInfo = '중형 물품 배송 (450kg 이하, 110×160×110cm)';
+            }
+        }
+        
+        if (!selectedVehicle && weight <= 500) {
+            const laboLimits = [140, 220, 130].sort((a, b) => b - a);
+            if (dimensions[0] <= laboLimits[0] && dimensions[1] <= laboLimits[1] && dimensions[2] <= laboLimits[2]) {
+                selectedVehicle = '라보';
+                vehicleInfo = '대형 물품 배송 (500kg 이하, 140×220×130cm)';
+            }
+        }
+        
+        if (!selectedVehicle && weight <= 1000) {
+            const truckLimits = [160, 280, 180].sort((a, b) => b - a);
+            if (dimensions[0] <= truckLimits[0] && dimensions[1] <= truckLimits[1] && dimensions[2] <= truckLimits[2]) {
+                selectedVehicle = '1톤';
+                vehicleInfo = '중량 화물 배송 (1,000kg 이하, 160×280×180cm)';
+            }
+        }
+        
+        if (!selectedVehicle) {
             selectedVehicle = '서비스 불가';
             vehicleInfo = '크기 또는 중량이 카카오T 퀵 서비스 한계를 초과했습니다.';
         }

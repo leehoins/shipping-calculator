@@ -39,8 +39,8 @@ const SHIPPING_CONFIG = {
             name: "다마스",
             maxSize: {
                 width: 110,
-                length: 140,
-                height: 160
+                length: 160,
+                height: 110
             },
             maxWeight: 450,
             baseFee: 2000,
@@ -49,9 +49,9 @@ const SHIPPING_CONFIG = {
         LABO: {
             name: "라보",
             maxSize: {
-                width: 160,
+                width: 140,
                 length: 220,
-                height: 280
+                height: 130
             },
             maxWeight: 500,
             baseFee: 2000,
@@ -60,8 +60,8 @@ const SHIPPING_CONFIG = {
         TRUCK_1T: {
             name: "1톤",
             maxSize: {
-                width: 110,
-                length: 130,
+                width: 160,
+                length: 280,
                 height: 180
             },
             maxWeight: 1000,
