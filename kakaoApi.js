@@ -15,14 +15,20 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
             orderType: orderType, // 'QUICK', 'QUICK_ECONOMY', 'QUICK_EXPRESS', 'DOBO'
             productSize: size, // 'XS', 'S', 'M', 'L'
             pickup: {
-                address: pickup.address,
-                latitude: pickup.lat,
-                longitude: pickup.lng
+                location: {
+                    basicAddress: pickup.address,
+                    detailAddress: '',
+                    latitude: pickup.lat,
+                    longitude: pickup.lng
+                }
             },
             dropoff: {
-                address: dropoff.address,
-                latitude: dropoff.lat,
-                longitude: dropoff.lng
+                location: {
+                    basicAddress: dropoff.address,
+                    detailAddress: '',
+                    latitude: dropoff.lat,
+                    longitude: dropoff.lng
+                }
             }
         };
 
