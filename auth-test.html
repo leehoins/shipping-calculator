@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>인증 테스트</title>
+</head>
+<body>
+    <h1>카카오T 퀵 인증 테스트</h1>
+    <button onclick="testAuth()">인증 확인</button>
+    <pre id="result"></pre>
+
+    <script>
+    async function testAuth() {
+        try {
+            const functionUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:8888/.netlify/functions/kakao-quick-price/auth-check'
+                : '/.netlify/functions/kakao-quick-price/auth-check';
+
+            const response = await fetch(functionUrl);
+            const data = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            document.getElementById('result').textContent = 'Error: ' + error.message;
+        }
+    }
+    </script>
+</body>
+</html>

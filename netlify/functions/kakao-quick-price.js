@@ -18,7 +18,55 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // Only allow POST
+  // Handle auth check endpoint
+  if (event.httpMethod === 'GET' && event.path.includes('auth-check')) {
+    try {
+      const KAKAO_API_CONFIG = {
+        API_KEY: process.env.KAKAO_QUICK_API_KEY || '55cef59b-8544-4733-9b4d-00ebc08736b2',
+        VENDOR_ID: process.env.KAKAO_QUICK_VENDOR_ID || 'VZQSH2',
+        BASE_URL: 'https://open-api-logistics.kakaomobility.com/goa-sandbox-service'
+      };
+
+      const timestamp = Date.now();
+      const nonce = Math.floor(Math.random() * 1000000);
+      const signkey = crypto.createHash('sha256')
+        .update(`${timestamp}${nonce}${KAKAO_API_CONFIG.API_KEY}`)
+        .digest('hex');
+      const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
+
+      const response = await fetch(`${KAKAO_API_CONFIG.BASE_URL}/v1/auth/check`, {
+        method: 'GET',
+        headers: {
+          'Authorization': authorization,
+          'vendor': KAKAO_API_CONFIG.VENDOR_ID
+        }
+      });
+
+      const data = await response.json();
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({
+          authCheck: data,
+          status: response.status,
+          debug: {
+            timestamp,
+            nonce,
+            signkey: signkey.substring(0, 10) + '...',
+            authorization: authorization.substring(0, 20) + '...'
+          }
+        })
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: error.message })
+      };
+    }
+  }
+
+  // Only allow POST for other endpoints
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
