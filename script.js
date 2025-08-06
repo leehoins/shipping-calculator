@@ -151,29 +151,29 @@ const shippingCalculator = {
         }
         
         // 기본 요금 (3km 포함)
-        let baseFee = KAKAO_CONFIG.QUICK_BASE_RATE.BASE_FEE;
+        let baseFee = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.BASE_FEE;
         
         // 거리별 추가 요금 (3km 초과분만)
         let distanceFee = 0;
         if (distance > 3) {
-            distanceFee = Math.ceil(distance - 3) * KAKAO_CONFIG.QUICK_BASE_RATE.PER_KM_FEE;
+            distanceFee = Math.ceil(distance - 3) * SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.PER_KM_FEE;
         }
         
         // 무게별 할증
         let weightSurcharge = 0;
         if (weight > 40) {
-            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[50];
+            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[50];
         } else if (weight > 30) {
-            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[40];
+            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[40];
         } else if (weight > 20) {
-            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[30];
+            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[30];
         }
         
         // 총 요금 계산
         let totalFee = baseFee + distanceFee + weightSurcharge;
         
         // 최소 요금 적용
-        totalFee = Math.max(totalFee, KAKAO_CONFIG.QUICK_BASE_RATE.MIN_FEE);
+        totalFee = Math.max(totalFee, SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.MIN_FEE);
         
         return {
             fee: Math.round(totalFee),
@@ -191,6 +191,7 @@ function formatCurrency(amount) {
 document.addEventListener('DOMContentLoaded', function() {
     // DOM 요소들
     const elements = {
+        departure: document.getElementById('departure'),
         address: document.getElementById('address'),
         detailAddress: document.getElementById('detailAddress'),
         addressSearchBtn: document.getElementById('addressSearchBtn'),
@@ -212,6 +213,41 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.markupInput.addEventListener('input', function() {
         elements.markupSlider.value = this.value;
     });
+    
+    // 출발지 선택에 따른 탭 표시/숨김
+    function updateServiceTabs() {
+        const selectedDeparture = elements.departure.value;
+        const departureInfo = SHIPPING_CONFIG.DEPARTURE_LOCATIONS[selectedDeparture];
+        
+        const postOfficeTab = document.querySelector('[data-tab="postOffice"]');
+        const gyeongdongTab = document.querySelector('[data-tab="gyeongdong"]');
+        const kakaoTab = document.querySelector('[data-tab="kakaoQuick"]');
+        
+        // 모든 탭 숨김
+        postOfficeTab.style.display = 'none';
+        gyeongdongTab.style.display = 'none';
+        kakaoTab.style.display = 'none';
+        
+        // 선택된 서비스만 표시
+        if (departureInfo.service === 'gyeongdong') {
+            postOfficeTab.style.display = 'inline-block';
+            gyeongdongTab.style.display = 'inline-block';
+            // 경동택배 선택시 첫번째 탭 활성화
+            if (!postOfficeTab.classList.contains('active') && !gyeongdongTab.classList.contains('active')) {
+                postOfficeTab.click();
+            }
+        } else if (departureInfo.service === 'kakao') {
+            kakaoTab.style.display = 'inline-block';
+            // 카카오T 퀵 선택시 해당 탭 활성화
+            kakaoTab.click();
+        }
+    }
+    
+    // 출발지 변경 이벤트
+    elements.departure.addEventListener('change', updateServiceTabs);
+    
+    // 초기 탭 설정
+    updateServiceTabs();
 
     // 다음 우편번호 서비스를 이용한 주소 검색
     elements.addressSearchBtn.addEventListener('click', function() {
@@ -296,15 +332,37 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // 출발지 정보 가져오기
+        const selectedDeparture = elements.departure.value;
+        const departureInfo = SHIPPING_CONFIG.DEPARTURE_LOCATIONS[selectedDeparture];
+        
         // 지역 판별 (간단한 키워드 기반)
         const isJeju = fullAddress.includes('제주');
         const isIsland = fullAddress.includes('도서') || fullAddress.includes('울릉') || fullAddress.includes('거제');
         
+        // 거리 계산을 위한 예상값 설정
+        let estimatedDistance = 10; // 기본값
+        
+        // 출발지와 도착지에 따른 거리 예상
+        if (departureInfo.service === 'kakao') {
+            if (selectedDeparture === 'gangnam' && fullAddress.includes('강남')) {
+                estimatedDistance = 5; // 강남 내 배송
+            } else if (selectedDeparture === 'gwangju' && fullAddress.includes('광주')) {
+                estimatedDistance = 5; // 광주 내 배송
+            } else if (fullAddress.includes('서울')) {
+                estimatedDistance = selectedDeparture === 'gangnam' ? 10 : 30; // 서울 내/서울까지
+            } else if (fullAddress.includes('경기')) {
+                estimatedDistance = selectedDeparture === 'gwangju' ? 10 : 25; // 경기 내/경기까지
+            } else if (isJeju) {
+                estimatedDistance = 50; // 제주도
+            } else {
+                estimatedDistance = 20; // 기타 지역
+            }
+        }
+        
         // 각 택배사별 기본 요금 계산
         const postOfficeBase = shippingCalculator.calculatePostOffice(width, length, height, weight, isJeju);
         const gyeongdongBase = shippingCalculator.calculateGyeongdong(width, length, height, weight, isIsland);
-        // 거리 계산을 위한 임시값 (성남 → 입력 주소)
-        const estimatedDistance = 10; // 기본 10km로 가정 (실제로는 카카오맵 API로 계산 가능)
         const kakaoQuickResult = shippingCalculator.calculateKakaoQuick(estimatedDistance, weight);
         
         // 마크업 계산
@@ -354,9 +412,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 계산 기준 정보 표시
+        document.getElementById('origin').textContent = departureInfo.name;
+        document.getElementById('destination').textContent = fullAddress || address;
         document.getElementById('totalSize').textContent = (width + length + height).toFixed(1);
         document.getElementById('totalWeight').textContent = weight.toFixed(1);
-        document.getElementById('destination').textContent = fullAddress || address;
         
         // 결과 섹션 표시
         elements.resultSection.style.display = 'block';
