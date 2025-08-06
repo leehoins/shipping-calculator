@@ -56,77 +56,19 @@ const shippingCalculator = {
     
     // 경동택배 화물 요금 계산
     calculateGyeongdong: function(width, length, height, weight, isIsland = false) {
-        // 부피 계산 (cm³)
-        const volume = width * length * height;
+        // 경동택배 공식 계산법
+        // A운임: (가로+세로+높이) × 80원
+        const totalSize = width + length + height;
+        const aFee = totalSize * 80;
         
-        // 부피 기준 요금 (정기화물 기준)
-        let volumeFee = 0;
-        if (volume <= 20000) {
-            volumeFee = 1600;
-        } else if (volume <= 30000) {
-            volumeFee = 2000;
-        } else if (volume <= 40000) {
-            volumeFee = 2400;
-        } else if (volume <= 50000) {
-            volumeFee = 2800;
-        } else if (volume <= 60000) {
-            volumeFee = 3200;
-        } else if (volume <= 80000) {
-            volumeFee = 3600;
-        } else if (volume <= 100000) {
-            volumeFee = 4000;
-        } else if (volume <= 120000) {
-            volumeFee = 4400;
-        } else if (volume <= 150000) {
-            volumeFee = 4800;
-        } else if (volume <= 200000) {
-            volumeFee = 5600;
-        } else if (volume <= 250000) {
-            volumeFee = 6400;
-        } else if (volume <= 300000) {
-            volumeFee = 7200;
-        } else if (volume <= 400000) {
-            volumeFee = 8000;
-        } else if (volume <= 500000) {
-            volumeFee = 8800;
-        } else {
-            // 500,000㎤ 초과 시 비례 계산
-            volumeFee = Math.round(8800 + (volume - 500000) / 100000 * 800);
-        }
+        // B운임: 중량(kg) × 200원
+        const bFee = weight * 200;
         
-        // 무게 기준 요금 (정기화물 기준)
-        let weightFee = 0;
-        if (weight <= 6) {
-            weightFee = 1600;
-        } else if (weight <= 7) {
-            weightFee = 1900;
-        } else if (weight <= 8) {
-            weightFee = 2200;
-        } else if (weight <= 9) {
-            weightFee = 2500;
-        } else if (weight <= 10) {
-            weightFee = 2800;
-        } else if (weight <= 12) {
-            weightFee = 3100;
-        } else if (weight <= 15) {
-            weightFee = 3400;
-        } else if (weight <= 20) {
-            weightFee = 4000;
-        } else if (weight <= 25) {
-            weightFee = 4600;
-        } else if (weight <= 30) {
-            weightFee = 5200;
-        } else if (weight <= 40) {
-            weightFee = 6400;
-        } else if (weight <= 50) {
-            weightFee = 7600;
-        } else {
-            // 50kg 초과 시 비례 계산
-            weightFee = Math.round(7600 + (weight - 50) / 10 * 1200);
-        }
+        // A운임과 B운임 중 높은 것 선택
+        let baseFee = Math.max(aFee, bFee);
         
-        // 부피와 무게 중 높은 요금 적용
-        let baseFee = Math.max(volumeFee, weightFee);
+        // 최저 운임 6,000원 적용
+        baseFee = Math.max(baseFee, 6000);
         
         // 성남에서 출발하는 거리별 할증 적용 (평균 25%)
         baseFee = Math.round(baseFee * 1.25);
@@ -314,9 +256,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const address = elements.address.value.trim();
         const detailAddress = elements.detailAddress.value.trim();
         const fullAddress = detailAddress ? `${address} ${detailAddress}` : address;
-        const width = parseFloat(elements.width.value) || 0;
-        const length = parseFloat(elements.length.value) || 0;
-        const height = parseFloat(elements.height.value) || 0;
+        // mm를 cm로 변환
+        const widthMm = parseFloat(elements.width.value) || 0;
+        const lengthMm = parseFloat(elements.length.value) || 0;
+        const heightMm = parseFloat(elements.height.value) || 0;
+        const width = widthMm / 10; // mm to cm
+        const length = lengthMm / 10; // mm to cm
+        const height = heightMm / 10; // mm to cm
         const weight = parseFloat(elements.weight.value) || 0;
         const markupPercent = parseFloat(elements.markupInput.value) || 0;
         
@@ -376,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 카카오T 퀵 - 강남 출발
         const gangnamDistance = shippingCalculator.estimateDistance('gangnam', fullAddress);
+        console.log('강남 출발 거리:', gangnamDistance, 'km, 주소:', fullAddress);
         const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(gangnamDistance, weight);
         if (!kakaoGangnamResult.error) {
             const result = calculateWithMarkup(kakaoGangnamResult.fee);
@@ -395,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 카카오T 퀵 - 광주 출발
         const gwangjuDistance = shippingCalculator.estimateDistance('gwangju', fullAddress);
+        console.log('광주 출발 거리:', gwangjuDistance, 'km, 주소:', fullAddress);
         const kakaoGwangjuResult = shippingCalculator.calculateKakaoQuick(gwangjuDistance, weight);
         if (!kakaoGwangjuResult.error) {
             const result = calculateWithMarkup(kakaoGwangjuResult.fee);
@@ -414,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 계산 기준 정보 표시
         document.getElementById('destination').textContent = fullAddress || address;
-        document.getElementById('totalSize').textContent = (width + length + height).toFixed(1);
+        document.getElementById('totalSize').textContent = (widthMm + lengthMm + heightMm).toFixed(0);
         document.getElementById('totalWeight').textContent = weight.toFixed(1);
         
         // 결과 섹션 표시
