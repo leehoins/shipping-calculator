@@ -177,7 +177,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= damasLimits[0] && dimensions[1] <= damasLimits[1] && dimensions[2] <= damasLimits[2]) {
             return {
                 orderType: 'QUICK',
-                productSize: size,
+                size: size,
                 vehicleType: '다마스'
             };
         }
@@ -188,7 +188,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= laboLimits[0] && dimensions[1] <= laboLimits[1] && dimensions[2] <= laboLimits[2]) {
             return {
                 orderType: 'QUICK',
-                productSize: size,
+                size: size,
                 vehicleType: '라보'
             };
         }
@@ -199,7 +199,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= truckLimits[0] && dimensions[1] <= truckLimits[1] && dimensions[2] <= truckLimits[2]) {
             return {
                 orderType: 'QUICK',
-                productSize: size,
+                size: size,
                 vehicleType: '1톤'
             };
         }
