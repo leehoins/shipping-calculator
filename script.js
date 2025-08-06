@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // API 상태 표시
         const apiStatusElement = document.getElementById('apiStatus');
         if (apiStatusElement) {
-            apiStatusElement.textContent = '로컬 계산 (KakaoT API 인증 대기중)';
+            apiStatusElement.textContent = 'API 연동됨';
             console.log('API 상태 업데이트:', apiStatusElement.textContent);
         } else {
             console.error('apiStatus 요소를 찾을 수 없습니다');
