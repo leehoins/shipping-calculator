@@ -1,5 +1,31 @@
 // Netlify Function for KakaoT Quick Price API
 const crypto = require('crypto');
+const https = require('https');
+
+// Helper function to make HTTPS requests
+function httpsRequest(options, data = null) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        try {
+          const response = {
+            status: res.statusCode,
+            data: JSON.parse(body)
+          };
+          resolve(response);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+    
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -34,15 +60,19 @@ exports.handler = async (event, context) => {
         .digest('hex');
       const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
 
-      const response = await fetch(`${KAKAO_API_CONFIG.BASE_URL}/v1/auth/check`, {
+      const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/v1/auth/check`);
+      const options = {
+        hostname: url.hostname,
+        path: url.pathname,
         method: 'GET',
         headers: {
           'Authorization': authorization,
           'vendor': KAKAO_API_CONFIG.VENDOR_ID
         }
-      });
+      };
 
-      const data = await response.json();
+      const response = await httpsRequest(options);
+      const data = response.data;
       return {
         statusCode: response.status,
         headers,
@@ -110,19 +140,24 @@ exports.handler = async (event, context) => {
     });
 
     // Make request to KakaoT API
-    const response = await fetch(`${KAKAO_API_CONFIG.BASE_URL}/orders/price`, {
+    const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/orders/price`);
+    const postData = JSON.stringify(body);
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
         'Authorization': authorization,
         'vendor': KAKAO_API_CONFIG.VENDOR_ID
-      },
-      body: JSON.stringify(body)
-    });
+      }
+    };
 
-    const data = await response.json();
+    const response = await httpsRequest(options, postData);
+    const data = response.data;
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       console.error('KakaoT API Error:', data);
       return {
         statusCode: response.status,
