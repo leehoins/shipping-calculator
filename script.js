@@ -502,57 +502,101 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gyeongdongMarkupPercent').textContent = markupPercent;
         
         // 카카오T 퀵 - 강남 출발
-        const gangnamDistance = shippingCalculator.estimateDistance('gangnam', fullAddress);
-        console.log('강남 출발 거리:', gangnamDistance, 'km, 주소:', fullAddress);
-        console.log('주소 분석:', {
-            includes서울: fullAddress.includes('서울'),
-            includes경기: fullAddress.includes('경기'),
-            includes강남: fullAddress.includes('강남'),
-            전체주소: fullAddress
-        });
-        const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(width, length, height, weight, gangnamDistance);
-        if (!kakaoGangnamResult.error) {
-            const result = calculateWithMarkup(kakaoGangnamResult.fee);
-            document.getElementById('kakaoGangnamBase').textContent = formatCurrency(result.base);
-            document.getElementById('kakaoGangnamMarkup').textContent = formatCurrency(result.markup);
-            document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
-            document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
-            document.getElementById('kakaoGangnamDistance').textContent = `약 ${kakaoGangnamResult.distance}km`;
-            document.getElementById('kakaoGangnamVehicleType').textContent = kakaoGangnamResult.vehicleType;
-            document.getElementById('kakaoGangnamPriceDetail').textContent = kakaoGangnamResult.priceDetail || '';
-            document.getElementById('kakaoGangnamCard').classList.remove('disabled');
+        // API 사용 가능 여부 확인
+        const useAPI = typeof calculateKakaoQuickFareWithAPI !== 'undefined' && typeof KAKAO_API_CONFIG !== 'undefined' && KAKAO_API_CONFIG.API_KEY;
+        
+        // API 상태 표시
+        document.getElementById('apiStatus').textContent = useAPI ? 'API 연동됨' : '로컬 계산';
+        
+        if (useAPI) {
+            // API를 통한 실시간 요금 조회
+            const gangnamAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gangnam.address;
+            calculateKakaoQuickFareWithAPI(gangnamAddress, fullAddress, width, length, height, weight)
+                .then(apiResult => {
+                    if (apiResult.success) {
+                        const baseFee = apiResult.data.estimated_fare;
+                        const result = calculateWithMarkup(baseFee);
+                        document.getElementById('kakaoGangnamBase').textContent = formatCurrency(result.base);
+                        document.getElementById('kakaoGangnamMarkup').textContent = formatCurrency(result.markup);
+                        document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
+                        document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
+                        document.getElementById('kakaoGangnamDistance').textContent = `약 ${apiResult.data.distance || '계산중'}km (API)`;
+                        document.getElementById('kakaoGangnamVehicleType').textContent = apiResult.data.vehicleType;
+                        document.getElementById('kakaoGangnamPriceDetail').textContent = '실시간 요금';
+                        document.getElementById('kakaoGangnamCard').classList.remove('disabled');
+                    } else {
+                        // API 실패시 기존 로직 사용
+                        console.log('API 실패, 기존 계산 방식 사용:', apiResult.error);
+                        calculateKakaoWithLocalLogic('gangnam', fullAddress, width, length, height, weight, markupPercent);
+                    }
+                })
+                .catch(error => {
+                    console.error('API 오류:', error);
+                    calculateKakaoWithLocalLogic('gangnam', fullAddress, width, length, height, weight, markupPercent);
+                });
         } else {
-            document.getElementById('kakaoGangnamBase').textContent = kakaoGangnamResult.error;
-            document.getElementById('kakaoGangnamMarkup').textContent = '-';
-            document.getElementById('kakaoGangnamTotal').textContent = '-';
-            document.getElementById('kakaoGangnamDistance').textContent = '-';
-            document.getElementById('kakaoGangnamVehicleType').textContent = kakaoGangnamResult.vehicleType || '서비스 불가';
-            document.getElementById('kakaoGangnamPriceDetail').textContent = '-';
-            document.getElementById('kakaoGangnamCard').classList.add('disabled');
+            // 기존 로직 사용
+            calculateKakaoWithLocalLogic('gangnam', fullAddress, width, length, height, weight, markupPercent);
+        }
+        
+        // 기존 로직을 함수로 분리
+        function calculateKakaoWithLocalLogic(departure, address, w, l, h, wt, markup) {
+            const distance = shippingCalculator.estimateDistance(departure, address);
+            console.log(`${departure} 출발 거리:`, distance, 'km, 주소:', address);
+            const result = shippingCalculator.calculateKakaoQuick(w, l, h, wt, distance);
+            const prefix = departure === 'gangnam' ? 'kakaoGangnam' : 'kakaoGwangju';
+            
+            if (!result.error) {
+                const markupResult = calculateWithMarkup(result.fee);
+                document.getElementById(prefix + 'Base').textContent = formatCurrency(markupResult.base);
+                document.getElementById(prefix + 'Markup').textContent = formatCurrency(markupResult.markup);
+                document.getElementById(prefix + 'Total').textContent = formatCurrency(markupResult.total);
+                document.getElementById(prefix + 'MarkupPercent').textContent = markup;
+                document.getElementById(prefix + 'Distance').textContent = `약 ${result.distance}km`;
+                document.getElementById(prefix + 'VehicleType').textContent = result.vehicleType;
+                document.getElementById(prefix + 'PriceDetail').textContent = result.priceDetail || '';
+                document.getElementById(prefix + 'Card').classList.remove('disabled');
+            } else {
+                document.getElementById(prefix + 'Base').textContent = result.error;
+                document.getElementById(prefix + 'Markup').textContent = '-';
+                document.getElementById(prefix + 'Total').textContent = '-';
+                document.getElementById(prefix + 'Distance').textContent = '-';
+                document.getElementById(prefix + 'VehicleType').textContent = result.vehicleType || '서비스 불가';
+                document.getElementById(prefix + 'PriceDetail').textContent = '-';
+                document.getElementById(prefix + 'Card').classList.add('disabled');
+            }
         }
         
         // 카카오T 퀵 - 광주 출발
-        const gwangjuDistance = shippingCalculator.estimateDistance('gwangju', fullAddress);
-        console.log('광주 출발 거리:', gwangjuDistance, 'km, 주소:', fullAddress);
-        const kakaoGwangjuResult = shippingCalculator.calculateKakaoQuick(width, length, height, weight, gwangjuDistance);
-        if (!kakaoGwangjuResult.error) {
-            const result = calculateWithMarkup(kakaoGwangjuResult.fee);
-            document.getElementById('kakaoGwangjuBase').textContent = formatCurrency(result.base);
-            document.getElementById('kakaoGwangjuMarkup').textContent = formatCurrency(result.markup);
-            document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
-            document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
-            document.getElementById('kakaoGwangjuDistance').textContent = `약 ${kakaoGwangjuResult.distance}km`;
-            document.getElementById('kakaoGwangjuVehicleType').textContent = kakaoGwangjuResult.vehicleType;
-            document.getElementById('kakaoGwangjuPriceDetail').textContent = kakaoGwangjuResult.priceDetail || '';
-            document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
+        if (useAPI) {
+            // API를 통한 실시간 요금 조회
+            const gwangjuAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gwangju.address;
+            calculateKakaoQuickFareWithAPI(gwangjuAddress, fullAddress, width, length, height, weight)
+                .then(apiResult => {
+                    if (apiResult.success) {
+                        const baseFee = apiResult.data.estimated_fare;
+                        const result = calculateWithMarkup(baseFee);
+                        document.getElementById('kakaoGwangjuBase').textContent = formatCurrency(result.base);
+                        document.getElementById('kakaoGwangjuMarkup').textContent = formatCurrency(result.markup);
+                        document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
+                        document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
+                        document.getElementById('kakaoGwangjuDistance').textContent = `약 ${apiResult.data.distance || '계산중'}km (API)`;
+                        document.getElementById('kakaoGwangjuVehicleType').textContent = apiResult.data.vehicleType;
+                        document.getElementById('kakaoGwangjuPriceDetail').textContent = '실시간 요금';
+                        document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
+                    } else {
+                        // API 실패시 기존 로직 사용
+                        console.log('API 실패, 기존 계산 방식 사용:', apiResult.error);
+                        calculateKakaoWithLocalLogic('gwangju', fullAddress, width, length, height, weight, markupPercent);
+                    }
+                })
+                .catch(error => {
+                    console.error('API 오류:', error);
+                    calculateKakaoWithLocalLogic('gwangju', fullAddress, width, length, height, weight, markupPercent);
+                });
         } else {
-            document.getElementById('kakaoGwangjuBase').textContent = kakaoGwangjuResult.error;
-            document.getElementById('kakaoGwangjuMarkup').textContent = '-';
-            document.getElementById('kakaoGwangjuTotal').textContent = '-';
-            document.getElementById('kakaoGwangjuDistance').textContent = '-';
-            document.getElementById('kakaoGwangjuVehicleType').textContent = kakaoGwangjuResult.vehicleType || '서비스 불가';
-            document.getElementById('kakaoGwangjuPriceDetail').textContent = '-';
-            document.getElementById('kakaoGwangjuCard').classList.add('disabled');
+            // 기존 로직 사용
+            calculateKakaoWithLocalLogic('gwangju', fullAddress, width, length, height, weight, markupPercent);
         }
         
         // 계산 기준 정보 표시
