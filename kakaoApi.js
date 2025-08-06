@@ -32,6 +32,16 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
             }
         };
 
+        // 대형(L) 사이즈일 경우 필수 필드 추가
+        if (size === 'L') {
+            requestBody.fleetOption = {
+                fleet: 'TRUCK',
+                type: 'NORMAL'
+            };
+            requestBody.pickup.loadingMethod = 'PICKER';
+            requestBody.dropoff.loadingMethod = 'PICKER';
+        }
+
         // Netlify Function 엔드포인트 사용 (로컬 및 프로덕션 자동 감지)
         const functionUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:8888/.netlify/functions/kakao-quick-price'
