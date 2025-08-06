@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': KAKAO_API_CONFIG.API_KEY,
-        'x-vendor-id': KAKAO_API_CONFIG.VENDOR_ID
+        'vendor': KAKAO_API_CONFIG.VENDOR_ID
       },
       body: JSON.stringify(body)
     });
