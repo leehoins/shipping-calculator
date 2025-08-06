@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
       const KAKAO_API_CONFIG = {
         API_KEY: process.env.KAKAO_QUICK_API_KEY || '55cef59b-8544-4733-9b4d-00ebc08736b2',
         VENDOR_ID: process.env.KAKAO_QUICK_VENDOR_ID || 'VZQSH2',
-        BASE_URL: 'https://open-api-logistics-sandbox.kakaomobility.com/goa-service'
+        BASE_URL: 'https://logistics-api-sandbox.kakaomobility.com'
       };
 
       const timestamp = Date.now();
@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
         .digest('hex');
       const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
 
-      const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/v1/auth/check`);
+      const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-service/v1/auth/check`);
       const options = {
         hostname: url.hostname,
         path: url.pathname,
@@ -113,7 +113,7 @@ exports.handler = async (event, context) => {
       API_KEY: process.env.KAKAO_QUICK_API_KEY || '55cef59b-8544-4733-9b4d-00ebc08736b2',
       VENDOR_ID: process.env.KAKAO_QUICK_VENDOR_ID || 'VZQSH2',
       // Sandbox URL - 실제 프로덕션 URL로 변경 필요할 수 있음
-      BASE_URL: 'https://open-api-logistics-sandbox.kakaomobility.com/goa-service/api/v2'
+      BASE_URL: 'https://logistics-api-sandbox.kakaomobility.com'
     };
 
     console.log('API Config:', {
@@ -140,7 +140,7 @@ exports.handler = async (event, context) => {
     });
 
     // Make request to KakaoT API
-    const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/orders/price`);
+    const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-service/api/v2/orders/price`);
     const postData = JSON.stringify(body);
     const options = {
       hostname: url.hostname,
