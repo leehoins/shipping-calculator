@@ -49,8 +49,8 @@ exports.handler = async (event, context) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KAKAO_API_CONFIG.API_KEY}`,
-        'vendor': KAKAO_API_CONFIG.VENDOR_ID
+        'x-api-key': KAKAO_API_CONFIG.API_KEY,
+        'x-vendor-id': KAKAO_API_CONFIG.VENDOR_ID
       },
       body: JSON.stringify(body)
     });
