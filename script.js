@@ -139,21 +139,46 @@ const shippingCalculator = {
         return baseFee;
     },
     
-    // 경동택배 퀵 요금 계산 (기본 요금에 거리별 할증 적용)
-    calculateGyeongdongQuick: function(width, length, height, weight, distance = 'local') {
-        // 기본 화물 요금 계산
-        let baseFee = this.calculateGyeongdong(width, length, height, weight, false);
-        
-        // 퀵 서비스 할증 (거리별)
-        let quickMultiplier = 1.5; // 기본 할증
-        
-        if (distance === 'mid') {
-            quickMultiplier = 2.0; // 중거리
-        } else if (distance === 'long') {
-            quickMultiplier = 2.5; // 장거리
+    // 카카오T 퀵 요금 계산
+    calculateKakaoQuick: function(distance, weight) {
+        // 중량 제한 체크 (50kg 초과 불가)
+        if (weight > 50) {
+            return {
+                error: "카카오T 퀵 중량 제한을 초과했습니다. (50kg 이하)",
+                fee: 0,
+                distance: 0
+            };
         }
         
-        return Math.round(baseFee * quickMultiplier);
+        // 기본 요금 (3km 포함)
+        let baseFee = KAKAO_CONFIG.QUICK_BASE_RATE.BASE_FEE;
+        
+        // 거리별 추가 요금 (3km 초과분만)
+        let distanceFee = 0;
+        if (distance > 3) {
+            distanceFee = Math.ceil(distance - 3) * KAKAO_CONFIG.QUICK_BASE_RATE.PER_KM_FEE;
+        }
+        
+        // 무게별 할증
+        let weightSurcharge = 0;
+        if (weight > 40) {
+            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[50];
+        } else if (weight > 30) {
+            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[40];
+        } else if (weight > 20) {
+            weightSurcharge = KAKAO_CONFIG.QUICK_BASE_RATE.WEIGHT_SURCHARGE[30];
+        }
+        
+        // 총 요금 계산
+        let totalFee = baseFee + distanceFee + weightSurcharge;
+        
+        // 최소 요금 적용
+        totalFee = Math.max(totalFee, KAKAO_CONFIG.QUICK_BASE_RATE.MIN_FEE);
+        
+        return {
+            fee: Math.round(totalFee),
+            distance: distance.toFixed(1)
+        };
     }
 };
 
@@ -278,7 +303,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 각 택배사별 기본 요금 계산
         const postOfficeBase = shippingCalculator.calculatePostOffice(width, length, height, weight, isJeju);
         const gyeongdongBase = shippingCalculator.calculateGyeongdong(width, length, height, weight, isIsland);
-        const gyeongdongQuickBase = shippingCalculator.calculateGyeongdongQuick(width, length, height, weight, 'local');
+        // 거리 계산을 위한 임시값 (성남 → 입력 주소)
+        const estimatedDistance = 10; // 기본 10km로 가정 (실제로는 카카오맵 API로 계산 가능)
+        const kakaoQuickResult = shippingCalculator.calculateKakaoQuick(estimatedDistance, weight);
         
         // 마크업 계산
         const calculateWithMarkup = (base) => {
@@ -310,12 +337,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gyeongdongTotal').textContent = formatCurrency(gyeongdongResult.total);
         document.getElementById('gyeongdongMarkupPercent').textContent = markupPercent;
         
-        // 경동택배 퀵 결과 표시
-        const gyeongdongQuickResult = calculateWithMarkup(gyeongdongQuickBase);
-        document.getElementById('gyeongdongQuickBase').textContent = formatCurrency(gyeongdongQuickResult.base);
-        document.getElementById('gyeongdongQuickMarkup').textContent = formatCurrency(gyeongdongQuickResult.markup);
-        document.getElementById('gyeongdongQuickTotal').textContent = formatCurrency(gyeongdongQuickResult.total);
-        document.getElementById('gyeongdongQuickMarkupPercent').textContent = markupPercent;
+        // 카카오T 퀵 결과 표시
+        if (kakaoQuickResult.error) {
+            document.getElementById('kakaoQuickBase').textContent = kakaoQuickResult.error;
+            document.getElementById('kakaoQuickMarkup').textContent = '-';
+            document.getElementById('kakaoQuickTotal').textContent = '-';
+            document.getElementById('estimatedDistance').textContent = '-';
+        } else {
+            const kakaoQuickBase = kakaoQuickResult.fee;
+            const kakaoQuickMarkupResult = calculateWithMarkup(kakaoQuickBase);
+            document.getElementById('kakaoQuickBase').textContent = formatCurrency(kakaoQuickMarkupResult.base);
+            document.getElementById('kakaoQuickMarkup').textContent = formatCurrency(kakaoQuickMarkupResult.markup);
+            document.getElementById('kakaoQuickTotal').textContent = formatCurrency(kakaoQuickMarkupResult.total);
+            document.getElementById('kakaoQuickMarkupPercent').textContent = markupPercent;
+            document.getElementById('estimatedDistance').textContent = `약 ${kakaoQuickResult.distance}km`;
+        }
         
         // 계산 기준 정보 표시
         document.getElementById('totalSize').textContent = (width + length + height).toFixed(1);

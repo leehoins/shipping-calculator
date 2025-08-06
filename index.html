@@ -65,7 +65,7 @@
             <div class="result-tabs">
                 <button class="tab-btn active" data-tab="postOffice">우체국 택배</button>
                 <button class="tab-btn" data-tab="gyeongdong">경동택배 화물</button>
-                <button class="tab-btn" data-tab="gyeongdongQuick">경동택배 퀵</button>
+                <button class="tab-btn" data-tab="kakaoQuick">카카오T 퀵</button>
             </div>
             
             <div class="tab-content active" id="postOfficeTab">
@@ -104,20 +104,24 @@
                 </div>
             </div>
             
-            <div class="tab-content" id="gyeongdongQuickTab">
-                <h3>경동택배 퀵</h3>
+            <div class="tab-content" id="kakaoQuickTab">
+                <h3>카카오T 퀵</h3>
                 <div class="price-detail">
                     <div class="price-row">
                         <span>기본 운임:</span>
-                        <span id="gyeongdongQuickBase">₩0</span>
+                        <span id="kakaoQuickBase">₩0</span>
                     </div>
                     <div class="price-row">
-                        <span>마크업 (<span id="gyeongdongQuickMarkupPercent">0</span>%):</span>
-                        <span id="gyeongdongQuickMarkup">₩0</span>
+                        <span>마크업 (<span id="kakaoQuickMarkupPercent">0</span>%):</span>
+                        <span id="kakaoQuickMarkup">₩0</span>
                     </div>
                     <div class="price-row total">
                         <span>최종 금액:</span>
-                        <span id="gyeongdongQuickTotal">₩0</span>
+                        <span id="kakaoQuickTotal">₩0</span>
+                    </div>
+                    <div class="price-row" style="font-size: 14px; color: #666; margin-top: 10px;">
+                        <span>예상 거리:</span>
+                        <span id="estimatedDistance">-</span>
                     </div>
                 </div>
             </div>
@@ -132,6 +136,7 @@
     </div>
     
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
