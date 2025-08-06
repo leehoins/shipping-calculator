@@ -13,7 +13,7 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
     try {
         const requestBody = {
             orderType: orderType, // 'QUICK', 'QUICK_ECONOMY', 'QUICK_EXPRESS', 'DOBO'
-            size: size, // 'XS', 'S', 'M', 'L'
+            productSize: size, // 'XS', 'S', 'M', 'L'
             pickup: {
                 address: pickup.address,
                 latitude: pickup.lat,
@@ -54,7 +54,7 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
                 maximum: data.maximum,
                 minimum: data.minimum,
                 orderType: orderType,
-                size: size
+                productSize: size
             }
         };
     } catch (error) {
@@ -171,7 +171,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= damasLimits[0] && dimensions[1] <= damasLimits[1] && dimensions[2] <= damasLimits[2]) {
             return {
                 orderType: 'QUICK',
-                size: size,
+                productSize: size,
                 vehicleType: '다마스'
             };
         }
@@ -182,7 +182,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= laboLimits[0] && dimensions[1] <= laboLimits[1] && dimensions[2] <= laboLimits[2]) {
             return {
                 orderType: 'QUICK',
-                size: size,
+                productSize: size,
                 vehicleType: '라보'
             };
         }
@@ -193,7 +193,7 @@ function determineVehicleTypeAndSize(width, length, height, weight) {
         if (dimensions[0] <= truckLimits[0] && dimensions[1] <= truckLimits[1] && dimensions[2] <= truckLimits[2]) {
             return {
                 orderType: 'QUICK',
-                size: size,
+                productSize: size,
                 vehicleType: '1톤'
             };
         }
