@@ -81,45 +81,71 @@ const shippingCalculator = {
         return baseFee;
     },
     
-    // 카카오T 퀵 요금 계산
-    calculateKakaoQuick: function(distance, weight) {
-        // 중량 제한 체크 (50kg 초과 불가)
-        if (weight > 50) {
+    // 카카오T 퀵 요금 계산 (차량 유형 자동 선택)
+    calculateKakaoQuick: function(width, length, height, weight, distance) {
+        // 적합한 차량 유형 선택
+        const totalSize = width + length + height;
+        let vehicleType = null;
+        let vehicleName = '';
+        
+        // 차량 선택 로직
+        if (weight <= 20 && totalSize <= 140) {
+            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.BIKE;
+            vehicleName = vehicleType.name;
+        } else if (weight <= 450 && width <= 110 && length <= 140 && height <= 160) {
+            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.DAMAS;
+            vehicleName = vehicleType.name;
+        } else if (weight <= 500 && width <= 160 && length <= 220 && height <= 280) {
+            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.LABO;
+            vehicleName = vehicleType.name;
+        } else if (weight <= 1000 && width <= 110 && length <= 130 && height <= 180) {
+            vehicleType = SHIPPING_CONFIG.KAKAO_VEHICLE_TYPES.TRUCK_1T;
+            vehicleName = vehicleType.name;
+        } else {
             return {
-                error: "카카오T 퀵 중량 제한을 초과했습니다. (50kg 이하)",
+                error: "카카오T 퀵 서비스 이용 불가 (크기/중량 초과)",
                 fee: 0,
-                distance: 0
+                distance: 0,
+                vehicleType: "없음"
             };
         }
         
-        // 기본 요금 (3km 포함)
-        let baseFee = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.BASE_FEE;
-        
-        // 거리별 추가 요금 (3km 초과분만)
-        let distanceFee = 0;
-        if (distance > 3) {
-            distanceFee = Math.ceil(distance - 3) * SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.PER_KM_FEE;
+        // 2025년 카카오T 퀵 요금 체계
+        let baseFee = 0;
+        if (vehicleType.name === "퀵/바이크") {
+            // 바이크: 3km까지 5,900원, 이후 km당 1,000원
+            if (distance <= 3) {
+                baseFee = 5900;
+            } else {
+                baseFee = 5900 + Math.ceil(distance - 3) * 1000;
+            }
+        } else if (vehicleType.name === "다마스") {
+            // 다마스: 5km까지 19,000원, 이후 km당 1,500원
+            if (distance <= 5) {
+                baseFee = 19000;
+            } else {
+                baseFee = 19000 + Math.ceil(distance - 5) * 1500;
+            }
+        } else if (vehicleType.name === "라보") {
+            // 라보: 5km까지 24,000원, 이후 km당 2,000원
+            if (distance <= 5) {
+                baseFee = 24000;
+            } else {
+                baseFee = 24000 + Math.ceil(distance - 5) * 2000;
+            }
+        } else if (vehicleType.name === "1톤") {
+            // 1톤: 5km까지 35,000원, 이후 km당 2,500원
+            if (distance <= 5) {
+                baseFee = 35000;
+            } else {
+                baseFee = 35000 + Math.ceil(distance - 5) * 2500;
+            }
         }
-        
-        // 무게별 할증
-        let weightSurcharge = 0;
-        if (weight > 40) {
-            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[50];
-        } else if (weight > 30) {
-            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[40];
-        } else if (weight > 20) {
-            weightSurcharge = SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.WEIGHT_SURCHARGE[30];
-        }
-        
-        // 총 요금 계산
-        let totalFee = baseFee + distanceFee + weightSurcharge;
-        
-        // 최소 요금 적용
-        totalFee = Math.max(totalFee, SHIPPING_CONFIG.KAKAO_QUICK_BASE_RATE.MIN_FEE);
         
         return {
-            fee: Math.round(totalFee),
-            distance: distance.toFixed(1)
+            fee: Math.round(baseFee),
+            distance: distance.toFixed(1),
+            vehicleType: vehicleName
         };
     },
     
@@ -220,6 +246,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         
+        // 기존에 입력된 주소값 저장
+        const currentAddressValue = elements.address.value.trim();
+        
         new daum.Postcode({
             oncomplete: function(data) {
                 // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분
@@ -245,8 +274,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 상세주소 입력 필드 표시 및 포커스
                 elements.detailAddress.style.display = 'block';
                 elements.detailAddress.focus();
-            }
-        }).open();
+            },
+            // 사용자가 팝업을 닫았을 때
+            onclose: function(state) {
+                // state가 COMPLETE가 아니면 (즉, 주소를 선택하지 않고 닫았으면)
+                // 기존 입력값이 있고 새로운 주소를 선택하지 않았다면 기존값 유지
+                if(state !== 'COMPLETE' && currentAddressValue && !elements.address.value) {
+                    elements.address.value = currentAddressValue;
+                }
+            },
+            // 검색어 자동 입력 옵션
+            autoMapping: currentAddressValue ? true : false,
+            shorthand: currentAddressValue ? true : false
+        }).open({
+            // 입력된 주소가 있으면 검색어로 사용
+            q: currentAddressValue
+        });
         });
     }
 
@@ -323,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 카카오T 퀵 - 강남 출발
         const gangnamDistance = shippingCalculator.estimateDistance('gangnam', fullAddress);
         console.log('강남 출발 거리:', gangnamDistance, 'km, 주소:', fullAddress);
-        const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(gangnamDistance, weight);
+        const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(width, length, height, weight, gangnamDistance);
         if (!kakaoGangnamResult.error) {
             const result = calculateWithMarkup(kakaoGangnamResult.fee);
             document.getElementById('kakaoGangnamBase').textContent = formatCurrency(result.base);
@@ -331,6 +374,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
             document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
             document.getElementById('kakaoGangnamDistance').textContent = `약 ${kakaoGangnamResult.distance}km`;
+            // 차량 유형 표시를 위한 요소 찾기 또는 생성
+            let vehicleTypeElement = document.getElementById('kakaoGangnamVehicleType');
+            if (!vehicleTypeElement) {
+                const vehicleRow = document.createElement('div');
+                vehicleRow.className = 'price-row';
+                vehicleRow.style.cssText = 'font-size: 14px; color: #666; margin-top: 5px;';
+                vehicleRow.innerHTML = '<span>차량 유형:</span> <span id="kakaoGangnamVehicleType" style="font-weight: bold; color: #3498db;"></span>';
+                document.getElementById('kakaoGangnamCard').querySelector('.price-detail').appendChild(vehicleRow);
+                vehicleTypeElement = document.getElementById('kakaoGangnamVehicleType');
+            }
+            vehicleTypeElement.textContent = kakaoGangnamResult.vehicleType;
             document.getElementById('kakaoGangnamCard').classList.remove('disabled');
         } else {
             document.getElementById('kakaoGangnamBase').textContent = kakaoGangnamResult.error;
@@ -343,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 카카오T 퀵 - 광주 출발
         const gwangjuDistance = shippingCalculator.estimateDistance('gwangju', fullAddress);
         console.log('광주 출발 거리:', gwangjuDistance, 'km, 주소:', fullAddress);
-        const kakaoGwangjuResult = shippingCalculator.calculateKakaoQuick(gwangjuDistance, weight);
+        const kakaoGwangjuResult = shippingCalculator.calculateKakaoQuick(width, length, height, weight, gwangjuDistance);
         if (!kakaoGwangjuResult.error) {
             const result = calculateWithMarkup(kakaoGwangjuResult.fee);
             document.getElementById('kakaoGwangjuBase').textContent = formatCurrency(result.base);
@@ -351,6 +405,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
             document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
             document.getElementById('kakaoGwangjuDistance').textContent = `약 ${kakaoGwangjuResult.distance}km`;
+            // 차량 유형 표시를 위한 요소 찾기 또는 생성
+            let vehicleTypeElement2 = document.getElementById('kakaoGwangjuVehicleType');
+            if (!vehicleTypeElement2) {
+                const vehicleRow2 = document.createElement('div');
+                vehicleRow2.className = 'price-row';
+                vehicleRow2.style.cssText = 'font-size: 14px; color: #666; margin-top: 5px;';
+                vehicleRow2.innerHTML = '<span>차량 유형:</span> <span id="kakaoGwangjuVehicleType" style="font-weight: bold; color: #3498db;"></span>';
+                document.getElementById('kakaoGwangjuCard').querySelector('.price-detail').appendChild(vehicleRow2);
+                vehicleTypeElement2 = document.getElementById('kakaoGwangjuVehicleType');
+            }
+            vehicleTypeElement2.textContent = kakaoGwangjuResult.vehicleType;
             document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
         } else {
             document.getElementById('kakaoGwangjuBase').textContent = kakaoGwangjuResult.error;

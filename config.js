@@ -19,20 +19,54 @@ const SHIPPING_CONFIG = {
         }
     },
     
-    // 카카오T 퀵 기본 요금 정보 (2024년 기준)
-    KAKAO_QUICK_BASE_RATE: {
-        // 기본료 (3km 기준)
-        BASE_FEE: 5900,
-        // km당 추가 요금 (3km 초과시)
-        PER_KM_FEE: 1000,
-        // 최소 요금
-        MIN_FEE: 5900,
-        // 무게별 할증
-        WEIGHT_SURCHARGE: {
-            20: 0,      // 20kg 이하
-            30: 2000,   // 20-30kg
-            40: 4000,   // 30-40kg
-            50: 6000    // 40-50kg (최대 50kg)
+    // 카카오T 퀵 차량 유형별 정보
+    KAKAO_VEHICLE_TYPES: {
+        BIKE: {
+            name: "퀵/바이크",
+            maxSize: 140, // 가로+세로+높이 합계 cm
+            maxWeight: 20, // kg
+            baseFee: 2000, // 배상한도 2000만원
+            perKmFee: 50
+        },
+        BIKE_LARGE: {
+            name: "방문 택배",
+            maxSize: 140,
+            maxWeight: 15,
+            baseFee: 50, // 배상한도 50만원
+            perKmFee: 50
+        },
+        DAMAS: {
+            name: "다마스",
+            maxSize: {
+                width: 110,
+                length: 140,
+                height: 160
+            },
+            maxWeight: 450,
+            baseFee: 2000,
+            perKmFee: 100
+        },
+        LABO: {
+            name: "라보",
+            maxSize: {
+                width: 160,
+                length: 220,
+                height: 280
+            },
+            maxWeight: 500,
+            baseFee: 2000,
+            perKmFee: 150
+        },
+        TRUCK_1T: {
+            name: "1톤",
+            maxSize: {
+                width: 110,
+                length: 130,
+                height: 180
+            },
+            maxWeight: 1000,
+            baseFee: 2000,
+            perKmFee: 200
         }
     }
 };
