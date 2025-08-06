@@ -64,7 +64,12 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ 
           error: 'KakaoT API Error', 
           details: data,
-          status: response.status 
+          status: response.status,
+          debug: {
+            apiKey: KAKAO_API_CONFIG.API_KEY ? 'Set' : 'Not set',
+            vendorId: KAKAO_API_CONFIG.VENDOR_ID,
+            requestBody: body
+          }
         })
       };
     }
