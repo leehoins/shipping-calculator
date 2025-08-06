@@ -179,24 +179,6 @@ const shippingCalculator = {
             fee: Math.round(totalFee),
             distance: distance.toFixed(1)
         };
-    },
-    
-    // 거리 계산 (출발지별)
-    estimateDistance: function(departure, destination) {
-        // 간단한 거리 추정 로직
-        if (departure === 'gangnam' && destination.includes('강남')) {
-            return 5; // 강남 내 배송
-        } else if (departure === 'gwangju' && destination.includes('광주')) {
-            return 5; // 광주 내 배송
-        } else if (destination.includes('서울')) {
-            return departure === 'gangnam' ? 10 : 30; // 서울 내/서울까지
-        } else if (destination.includes('경기')) {
-            return departure === 'gwangju' ? 10 : 25; // 경기 내/경기까지
-        } else if (destination.includes('제주')) {
-            return 50; // 제주도
-        } else {
-            return 20; // 기타 지역
-        }
     }
 };
 
@@ -209,6 +191,7 @@ function formatCurrency(amount) {
 document.addEventListener('DOMContentLoaded', function() {
     // DOM 요소들
     const elements = {
+        departure: document.getElementById('departure'),
         address: document.getElementById('address'),
         detailAddress: document.getElementById('detailAddress'),
         addressSearchBtn: document.getElementById('addressSearchBtn'),
@@ -230,6 +213,41 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.markupInput.addEventListener('input', function() {
         elements.markupSlider.value = this.value;
     });
+    
+    // 출발지 선택에 따른 탭 표시/숨김
+    function updateServiceTabs() {
+        const selectedDeparture = elements.departure.value;
+        const departureInfo = SHIPPING_CONFIG.DEPARTURE_LOCATIONS[selectedDeparture];
+        
+        const postOfficeTab = document.querySelector('[data-tab="postOffice"]');
+        const gyeongdongTab = document.querySelector('[data-tab="gyeongdong"]');
+        const kakaoTab = document.querySelector('[data-tab="kakaoQuick"]');
+        
+        // 모든 탭 숨김
+        postOfficeTab.style.display = 'none';
+        gyeongdongTab.style.display = 'none';
+        kakaoTab.style.display = 'none';
+        
+        // 선택된 서비스만 표시
+        if (departureInfo.service === 'gyeongdong') {
+            postOfficeTab.style.display = 'inline-block';
+            gyeongdongTab.style.display = 'inline-block';
+            // 경동택배 선택시 첫번째 탭 활성화
+            if (!postOfficeTab.classList.contains('active') && !gyeongdongTab.classList.contains('active')) {
+                postOfficeTab.click();
+            }
+        } else if (departureInfo.service === 'kakao') {
+            kakaoTab.style.display = 'inline-block';
+            // 카카오T 퀵 선택시 해당 탭 활성화
+            kakaoTab.click();
+        }
+    }
+    
+    // 출발지 변경 이벤트
+    elements.departure.addEventListener('change', updateServiceTabs);
+    
+    // 초기 탭 설정
+    updateServiceTabs();
 
     // 다음 우편번호 서비스를 이용한 주소 검색
     elements.addressSearchBtn.addEventListener('click', function() {
@@ -268,6 +286,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }).open();
     });
 
+    // 탭 기능
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+            
+            // 모든 탭 비활성화
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            button.classList.add('active');
+            document.getElementById(targetTab + 'Tab').classList.add('active');
+        });
+    });
+
     // 배송비 계산 함수
     function calculateShipping() {
         // 입력값 가져오기
@@ -296,11 +332,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // 지역 판별
+        // 출발지 정보 가져오기
+        const selectedDeparture = elements.departure.value;
+        const departureInfo = SHIPPING_CONFIG.DEPARTURE_LOCATIONS[selectedDeparture];
+        
+        // 지역 판별 (간단한 키워드 기반)
         const isJeju = fullAddress.includes('제주');
         const isIsland = fullAddress.includes('도서') || fullAddress.includes('울릉') || fullAddress.includes('거제');
         
-        // 마크업 계산 함수
+        // 거리 계산을 위한 예상값 설정
+        let estimatedDistance = 10; // 기본값
+        
+        // 출발지와 도착지에 따른 거리 예상
+        if (departureInfo.service === 'kakao') {
+            if (selectedDeparture === 'gangnam' && fullAddress.includes('강남')) {
+                estimatedDistance = 5; // 강남 내 배송
+            } else if (selectedDeparture === 'gwangju' && fullAddress.includes('광주')) {
+                estimatedDistance = 5; // 광주 내 배송
+            } else if (fullAddress.includes('서울')) {
+                estimatedDistance = selectedDeparture === 'gangnam' ? 10 : 30; // 서울 내/서울까지
+            } else if (fullAddress.includes('경기')) {
+                estimatedDistance = selectedDeparture === 'gwangju' ? 10 : 25; // 경기 내/경기까지
+            } else if (isJeju) {
+                estimatedDistance = 50; // 제주도
+            } else {
+                estimatedDistance = 20; // 기타 지역
+            }
+        }
+        
+        // 각 택배사별 기본 요금 계산
+        const postOfficeBase = shippingCalculator.calculatePostOffice(width, length, height, weight, isJeju);
+        const gyeongdongBase = shippingCalculator.calculateGyeongdong(width, length, height, weight, isIsland);
+        const kakaoQuickResult = shippingCalculator.calculateKakaoQuick(estimatedDistance, weight);
+        
+        // 마크업 계산
         const calculateWithMarkup = (base) => {
             if (typeof base === 'number') {
                 const markup = Math.round(base * markupPercent / 100);
@@ -310,69 +375,44 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         };
         
-        // 우체국 택배 계산
-        const postOfficeBase = shippingCalculator.calculatePostOffice(width, length, height, weight, isJeju);
+        // 우체국 택배 결과 표시
         if (typeof postOfficeBase === 'number') {
-            const result = calculateWithMarkup(postOfficeBase);
-            document.getElementById('postOfficeBase').textContent = formatCurrency(result.base);
-            document.getElementById('postOfficeMarkup').textContent = formatCurrency(result.markup);
-            document.getElementById('postOfficeTotal').textContent = formatCurrency(result.total);
+            const postOfficeResult = calculateWithMarkup(postOfficeBase);
+            document.getElementById('postOfficeBase').textContent = formatCurrency(postOfficeResult.base);
+            document.getElementById('postOfficeMarkup').textContent = formatCurrency(postOfficeResult.markup);
+            document.getElementById('postOfficeTotal').textContent = formatCurrency(postOfficeResult.total);
             document.getElementById('postOfficeMarkupPercent').textContent = markupPercent;
-            document.getElementById('postOfficeCard').classList.remove('disabled');
         } else {
             document.getElementById('postOfficeBase').textContent = postOfficeBase.error;
             document.getElementById('postOfficeMarkup').textContent = '-';
             document.getElementById('postOfficeTotal').textContent = '-';
-            document.getElementById('postOfficeCard').classList.add('disabled');
         }
         
-        // 경동택배 화물 계산
-        const gyeongdongBase = shippingCalculator.calculateGyeongdong(width, length, height, weight, isIsland);
+        // 경동택배 화물 결과 표시
         const gyeongdongResult = calculateWithMarkup(gyeongdongBase);
         document.getElementById('gyeongdongBase').textContent = formatCurrency(gyeongdongResult.base);
         document.getElementById('gyeongdongMarkup').textContent = formatCurrency(gyeongdongResult.markup);
         document.getElementById('gyeongdongTotal').textContent = formatCurrency(gyeongdongResult.total);
         document.getElementById('gyeongdongMarkupPercent').textContent = markupPercent;
         
-        // 카카오T 퀵 - 강남 출발
-        const gangnamDistance = shippingCalculator.estimateDistance('gangnam', fullAddress);
-        const kakaoGangnamResult = shippingCalculator.calculateKakaoQuick(gangnamDistance, weight);
-        if (!kakaoGangnamResult.error) {
-            const result = calculateWithMarkup(kakaoGangnamResult.fee);
-            document.getElementById('kakaoGangnamBase').textContent = formatCurrency(result.base);
-            document.getElementById('kakaoGangnamMarkup').textContent = formatCurrency(result.markup);
-            document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
-            document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
-            document.getElementById('kakaoGangnamDistance').textContent = `약 ${kakaoGangnamResult.distance}km`;
-            document.getElementById('kakaoGangnamCard').classList.remove('disabled');
+        // 카카오T 퀵 결과 표시
+        if (kakaoQuickResult.error) {
+            document.getElementById('kakaoQuickBase').textContent = kakaoQuickResult.error;
+            document.getElementById('kakaoQuickMarkup').textContent = '-';
+            document.getElementById('kakaoQuickTotal').textContent = '-';
+            document.getElementById('estimatedDistance').textContent = '-';
         } else {
-            document.getElementById('kakaoGangnamBase').textContent = kakaoGangnamResult.error;
-            document.getElementById('kakaoGangnamMarkup').textContent = '-';
-            document.getElementById('kakaoGangnamTotal').textContent = '-';
-            document.getElementById('kakaoGangnamDistance').textContent = '-';
-            document.getElementById('kakaoGangnamCard').classList.add('disabled');
-        }
-        
-        // 카카오T 퀵 - 광주 출발
-        const gwangjuDistance = shippingCalculator.estimateDistance('gwangju', fullAddress);
-        const kakaoGwangjuResult = shippingCalculator.calculateKakaoQuick(gwangjuDistance, weight);
-        if (!kakaoGwangjuResult.error) {
-            const result = calculateWithMarkup(kakaoGwangjuResult.fee);
-            document.getElementById('kakaoGwangjuBase').textContent = formatCurrency(result.base);
-            document.getElementById('kakaoGwangjuMarkup').textContent = formatCurrency(result.markup);
-            document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
-            document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
-            document.getElementById('kakaoGwangjuDistance').textContent = `약 ${kakaoGwangjuResult.distance}km`;
-            document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
-        } else {
-            document.getElementById('kakaoGwangjuBase').textContent = kakaoGwangjuResult.error;
-            document.getElementById('kakaoGwangjuMarkup').textContent = '-';
-            document.getElementById('kakaoGwangjuTotal').textContent = '-';
-            document.getElementById('kakaoGwangjuDistance').textContent = '-';
-            document.getElementById('kakaoGwangjuCard').classList.add('disabled');
+            const kakaoQuickBase = kakaoQuickResult.fee;
+            const kakaoQuickMarkupResult = calculateWithMarkup(kakaoQuickBase);
+            document.getElementById('kakaoQuickBase').textContent = formatCurrency(kakaoQuickMarkupResult.base);
+            document.getElementById('kakaoQuickMarkup').textContent = formatCurrency(kakaoQuickMarkupResult.markup);
+            document.getElementById('kakaoQuickTotal').textContent = formatCurrency(kakaoQuickMarkupResult.total);
+            document.getElementById('kakaoQuickMarkupPercent').textContent = markupPercent;
+            document.getElementById('estimatedDistance').textContent = `약 ${kakaoQuickResult.distance}km`;
         }
         
         // 계산 기준 정보 표시
+        document.getElementById('origin').textContent = departureInfo.name;
         document.getElementById('destination').textContent = fullAddress || address;
         document.getElementById('totalSize').textContent = (width + length + height).toFixed(1);
         document.getElementById('totalWeight').textContent = weight.toFixed(1);
@@ -391,4 +431,4 @@ document.addEventListener('DOMContentLoaded', function() {
             calculateShipping();
         }
     });
-});
+}); // DOMContentLoaded 종료
