@@ -2,10 +2,10 @@
 const crypto = require('crypto');
 const https = require('https');
 
-// HMAC-SHA512 서명 생성 함수
+// SHA512 서명 생성 함수 (HMAC이 아닌 일반 SHA512)
 function generateSignature(timestamp, nonce, apiKey) {
   const data = timestamp + nonce + apiKey;
-  return crypto.createHmac('sha512', apiKey).update(data).digest('hex');
+  return crypto.createHash('sha512').update(data).digest('hex');
 }
 
 // Helper function to make HTTPS requests
