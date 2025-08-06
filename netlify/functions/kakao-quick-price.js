@@ -53,20 +53,14 @@ exports.handler = async (event, context) => {
         BASE_URL: 'https://open-api-logistics.kakaomobility.com'
       };
 
-      const timestamp = Date.now();
-      const nonce = Math.floor(Math.random() * 1000000);
-      const signkey = crypto.createHash('sha256')
-        .update(`${timestamp}${nonce}${KAKAO_API_CONFIG.API_KEY}`)
-        .digest('hex');
-      const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
-
+      // 먼저 단순한 API 키 방식 시도
       const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-sandbox-service/v1/auth/check`);
       const options = {
         hostname: url.hostname,
         path: url.pathname,
         method: 'GET',
         headers: {
-          'Authorization': authorization,
+          'Authorization': `API-Key ${KAKAO_API_CONFIG.API_KEY}`,
           'vendor': KAKAO_API_CONFIG.VENDOR_ID
         }
       };
@@ -80,10 +74,8 @@ exports.handler = async (event, context) => {
           authCheck: data,
           status: response.status,
           debug: {
-            timestamp,
-            nonce,
-            signkey: signkey.substring(0, 10) + '...',
-            authorization: authorization.substring(0, 20) + '...'
+            apiKeyFormat: 'API-Key prefix',
+            vendorId: KAKAO_API_CONFIG.VENDOR_ID
           }
         })
       };
@@ -124,20 +116,8 @@ exports.handler = async (event, context) => {
 
     console.log('Request body:', JSON.stringify(body, null, 2));
 
-    // Generate authentication
-    const timestamp = Date.now();
-    const nonce = Math.floor(Math.random() * 1000000);
-    const signkey = crypto.createHash('sha256')
-      .update(`${timestamp}${nonce}${KAKAO_API_CONFIG.API_KEY}`)
-      .digest('hex');
-    const authorization = Buffer.from(`${timestamp}$$${nonce}$$${signkey}`).toString('base64');
-
-    console.log('Auth details:', {
-      timestamp,
-      nonce,
-      signkey: signkey.substring(0, 10) + '...',
-      authorization: authorization.substring(0, 20) + '...'
-    });
+    // 단순한 API 키 방식 시도
+    console.log('Using simple API key authentication');
 
     // Make request to KakaoT API
     const url = new URL(`${KAKAO_API_CONFIG.BASE_URL}/goa-sandbox-service/api/v2/orders/price`);
@@ -149,7 +129,7 @@ exports.handler = async (event, context) => {
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
-        'Authorization': authorization,
+        'Authorization': `API-Key ${KAKAO_API_CONFIG.API_KEY}`,
         'vendor': KAKAO_API_CONFIG.VENDOR_ID
       }
     };
