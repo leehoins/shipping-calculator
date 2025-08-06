@@ -374,23 +374,14 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
             document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
             document.getElementById('kakaoGangnamDistance').textContent = `약 ${kakaoGangnamResult.distance}km`;
-            // 차량 유형 표시를 위한 요소 찾기 또는 생성
-            let vehicleTypeElement = document.getElementById('kakaoGangnamVehicleType');
-            if (!vehicleTypeElement) {
-                const vehicleRow = document.createElement('div');
-                vehicleRow.className = 'price-row';
-                vehicleRow.style.cssText = 'font-size: 14px; color: #666; margin-top: 5px;';
-                vehicleRow.innerHTML = '<span>차량 유형:</span> <span id="kakaoGangnamVehicleType" style="font-weight: bold; color: #3498db;"></span>';
-                document.getElementById('kakaoGangnamCard').querySelector('.price-detail').appendChild(vehicleRow);
-                vehicleTypeElement = document.getElementById('kakaoGangnamVehicleType');
-            }
-            vehicleTypeElement.textContent = kakaoGangnamResult.vehicleType;
+            document.getElementById('kakaoGangnamVehicleType').textContent = kakaoGangnamResult.vehicleType;
             document.getElementById('kakaoGangnamCard').classList.remove('disabled');
         } else {
             document.getElementById('kakaoGangnamBase').textContent = kakaoGangnamResult.error;
             document.getElementById('kakaoGangnamMarkup').textContent = '-';
             document.getElementById('kakaoGangnamTotal').textContent = '-';
             document.getElementById('kakaoGangnamDistance').textContent = '-';
+            document.getElementById('kakaoGangnamVehicleType').textContent = '-';
             document.getElementById('kakaoGangnamCard').classList.add('disabled');
         }
         
@@ -405,23 +396,14 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
             document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
             document.getElementById('kakaoGwangjuDistance').textContent = `약 ${kakaoGwangjuResult.distance}km`;
-            // 차량 유형 표시를 위한 요소 찾기 또는 생성
-            let vehicleTypeElement2 = document.getElementById('kakaoGwangjuVehicleType');
-            if (!vehicleTypeElement2) {
-                const vehicleRow2 = document.createElement('div');
-                vehicleRow2.className = 'price-row';
-                vehicleRow2.style.cssText = 'font-size: 14px; color: #666; margin-top: 5px;';
-                vehicleRow2.innerHTML = '<span>차량 유형:</span> <span id="kakaoGwangjuVehicleType" style="font-weight: bold; color: #3498db;"></span>';
-                document.getElementById('kakaoGwangjuCard').querySelector('.price-detail').appendChild(vehicleRow2);
-                vehicleTypeElement2 = document.getElementById('kakaoGwangjuVehicleType');
-            }
-            vehicleTypeElement2.textContent = kakaoGwangjuResult.vehicleType;
+            document.getElementById('kakaoGwangjuVehicleType').textContent = kakaoGwangjuResult.vehicleType;
             document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
         } else {
             document.getElementById('kakaoGwangjuBase').textContent = kakaoGwangjuResult.error;
             document.getElementById('kakaoGwangjuMarkup').textContent = '-';
             document.getElementById('kakaoGwangjuTotal').textContent = '-';
             document.getElementById('kakaoGwangjuDistance').textContent = '-';
+            document.getElementById('kakaoGwangjuVehicleType').textContent = '-';
             document.getElementById('kakaoGwangjuCard').classList.add('disabled');
         }
         
@@ -438,9 +420,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 계산 버튼 클릭 이벤트
     elements.calculateBtn.addEventListener('click', calculateShipping);
 
-    // 엔터키로 계산 실행
+    // 주소 입력란에서 엔터키로 주소 검색 실행
+    elements.address.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 기본 엔터 동작 방지
+            if (elements.addressSearchBtn) {
+                elements.addressSearchBtn.click(); // 주소 검색 버튼 클릭
+            }
+        }
+    });
+
+    // 다른 입력란에서 엔터키로 계산 실행
     document.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target !== elements.address) {
             calculateShipping();
         }
     });
