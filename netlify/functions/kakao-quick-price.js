@@ -35,12 +35,20 @@ exports.handler = async (event, context) => {
       BASE_URL: 'https://open-api-logistics.kakaomobility.com/goa-sandbox-service/api/v2'
     };
 
+    console.log('API Config:', {
+      hasApiKey: !!KAKAO_API_CONFIG.API_KEY,
+      vendorId: KAKAO_API_CONFIG.VENDOR_ID,
+      url: KAKAO_API_CONFIG.BASE_URL
+    });
+
+    console.log('Request body:', JSON.stringify(body, null, 2));
+
     // Make request to KakaoT API
     const response = await fetch(`${KAKAO_API_CONFIG.BASE_URL}/orders/price`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KAKAO_API_CONFIG.API_KEY}`,
+        'Authorization': KAKAO_API_CONFIG.API_KEY,
         'vendor': KAKAO_API_CONFIG.VENDOR_ID
       },
       body: JSON.stringify(body)
