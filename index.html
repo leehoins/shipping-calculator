@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송비 자동 계산 서비스</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>배송비 자동 계산 서비스</h1>
+        
+        <div class="form-section">
+            <h2>배송 정보 입력</h2>
+            
+            <div class="input-group">
+                <label for="address">배송 주소</label>
+                <div class="address-input-wrapper">
+                    <input type="text" id="address" placeholder="주소를 입력하거나 검색하세요">
+                    <button type="button" id="addressSearchBtn" class="address-search-btn">주소 검색</button>
+                </div>
+                <input type="text" id="detailAddress" placeholder="상세 주소를 입력하세요" style="margin-top: 10px;">
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                    * 주소를 직접 입력할 수도 있습니다 (예: 경기도 성남시, 제주도 등)
+                </p>
+            </div>
+            
+            <div class="dimension-inputs">
+                <div class="input-group">
+                    <label for="width">가로 (cm)</label>
+                    <input type="number" id="width" min="0" step="0.1" placeholder="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="length">세로 (cm)</label>
+                    <input type="number" id="length" min="0" step="0.1" placeholder="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="height">높이 (cm)</label>
+                    <input type="number" id="height" min="0" step="0.1" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="weight">중량 (kg)</label>
+                <input type="number" id="weight" min="0" step="0.1" placeholder="0">
+            </div>
+            
+            <div class="markup-section">
+                <label for="markup">마크업 (%)</label>
+                <div class="markup-control">
+                    <input type="range" id="markupSlider" min="0" max="100" value="0" step="1">
+                    <input type="number" id="markupInput" min="0" max="100" value="0" step="1">
+                    <span>%</span>
+                </div>
+            </div>
+            
+            <button id="calculateBtn" class="calculate-btn">배송비 계산하기</button>
+        </div>
+        
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h2>배송비 계산 결과</h2>
+            
+            <div class="result-tabs">
+                <button class="tab-btn active" data-tab="postOffice">우체국 택배</button>
+                <button class="tab-btn" data-tab="gyeongdong">경동택배 화물</button>
+                <button class="tab-btn" data-tab="gyeongdongQuick">경동택배 퀵</button>
+            </div>
+            
+            <div class="tab-content active" id="postOfficeTab">
+                <h3>우체국 택배</h3>
+                <div class="price-detail">
+                    <div class="price-row">
+                        <span>기본 운임:</span>
+                        <span id="postOfficeBase">₩0</span>
+                    </div>
+                    <div class="price-row">
+                        <span>마크업 (<span id="postOfficeMarkupPercent">0</span>%):</span>
+                        <span id="postOfficeMarkup">₩0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>최종 금액:</span>
+                        <span id="postOfficeTotal">₩0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="gyeongdongTab">
+                <h3>경동택배 화물</h3>
+                <div class="price-detail">
+                    <div class="price-row">
+                        <span>기본 운임:</span>
+                        <span id="gyeongdongBase">₩0</span>
+                    </div>
+                    <div class="price-row">
+                        <span>마크업 (<span id="gyeongdongMarkupPercent">0</span>%):</span>
+                        <span id="gyeongdongMarkup">₩0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>최종 금액:</span>
+                        <span id="gyeongdongTotal">₩0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="gyeongdongQuickTab">
+                <h3>경동택배 퀵</h3>
+                <div class="price-detail">
+                    <div class="price-row">
+                        <span>기본 운임:</span>
+                        <span id="gyeongdongQuickBase">₩0</span>
+                    </div>
+                    <div class="price-row">
+                        <span>마크업 (<span id="gyeongdongQuickMarkupPercent">0</span>%):</span>
+                        <span id="gyeongdongQuickMarkup">₩0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>최종 금액:</span>
+                        <span id="gyeongdongQuickTotal">₩0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h4>계산 기준</h4>
+                <p>크기: <span id="totalSize">0</span>cm (가로 + 세로 + 높이)</p>
+                <p>중량: <span id="totalWeight">0</span>kg</p>
+                <p>배송지: <span id="destination">-</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
