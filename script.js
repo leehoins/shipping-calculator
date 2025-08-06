@@ -232,12 +232,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 다음 우편번호 서비스를 이용한 주소 검색
-    elements.addressSearchBtn.addEventListener('click', function() {
-        // daum.Postcode이 로드되었는지 확인
-        if (typeof daum === 'undefined' || typeof daum.Postcode === 'undefined') {
-            alert('주소 검색 서비스를 로드하는 중입니다. 잠시 후 다시 시도해주세요.');
-            return;
-        }
+    if (elements.addressSearchBtn) {
+        elements.addressSearchBtn.addEventListener('click', function() {
+            // daum.Postcode이 로드되었는지 확인
+            if (typeof daum === 'undefined' || typeof daum.Postcode === 'undefined') {
+                alert('주소 검색 서비스를 로드하는 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
         
         new daum.Postcode({
             oncomplete: function(data) {
@@ -266,7 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.detailAddress.focus();
             }
         }).open();
-    });
+        });
+    }
 
     // 배송비 계산 함수
     function calculateShipping() {
