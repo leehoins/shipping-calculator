@@ -71,22 +71,47 @@ exports.handler = async (event, context) => {
         }
 
         const data = await response.json();
+        console.log('Kakao Route API response structure:', {
+            hasRoutes: !!data.routes,
+            routesLength: data.routes ? data.routes.length : 0,
+            firstRoute: data.routes && data.routes[0] ? Object.keys(data.routes[0]) : []
+        });
         
         if (data.routes && data.routes.length > 0) {
             const route = data.routes[0];
-            const distanceInMeters = route.summary.distance;
-            const distanceInKm = Math.round(distanceInMeters / 1000);
-            const duration = Math.round(route.summary.duration / 60);
-            
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    distance: distanceInKm,
-                    duration: duration,
-                    exact: true
-                })
-            };
+            // summary가 있는지 확인
+            if (route.summary) {
+                const distanceInMeters = route.summary.distance;
+                const distanceInKm = Math.round(distanceInMeters / 1000);
+                const duration = Math.round(route.summary.duration / 60);
+                
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({
+                        distance: distanceInKm,
+                        duration: duration,
+                        exact: true
+                    })
+                };
+            } else {
+                // summary가 없는 경우 다른 필드 체크
+                const sections = route.sections || [];
+                if (sections.length > 0) {
+                    const totalDistance = sections.reduce((sum, section) => sum + (section.distance || 0), 0);
+                    const totalDuration = sections.reduce((sum, section) => sum + (section.duration || 0), 0);
+                    
+                    return {
+                        statusCode: 200,
+                        headers,
+                        body: JSON.stringify({
+                            distance: Math.round(totalDistance / 1000),
+                            duration: Math.round(totalDuration / 60),
+                            exact: true
+                        })
+                    };
+                }
+            }
         }
 
         return {
