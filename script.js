@@ -514,8 +514,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // API 상태 표시
         const apiStatusElement = document.getElementById('apiStatus');
+        const apiDetailsElement = document.getElementById('apiDetails');
         if (apiStatusElement) {
             apiStatusElement.textContent = 'API 연동됨';
+            if (apiDetailsElement) {
+                const details = [];
+                if (kakaoOptions.loadingMethod !== 'PICKER') {
+                    details.push(kakaoOptions.loadingMethod === 'USER' ? '고객 직접 상하차' : '함께 상하차');
+                }
+                if (kakaoOptions.isRoundTrip) {
+                    details.push('왕복 배송');
+                }
+                apiDetailsElement.textContent = details.length > 0 ? `(${details.join(', ')})` : '';
+            }
             console.log('API 상태 업데이트:', apiStatusElement.textContent);
         } else {
             console.error('apiStatus 요소를 찾을 수 없습니다');
@@ -524,7 +535,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (useAPI) {
             // API를 통한 실시간 요금 조회
             const gangnamAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gangnam.address;
-            calculateKakaoQuickFareWithAPI(gangnamAddress, fullAddress, width, length, height, weight)
+            
+            // 카카오T 퀵 옵션 가져오기
+            const kakaoOptions = {
+                loadingMethod: document.getElementById('loadingMethod').value,
+                isRoundTrip: document.getElementById('isRoundTrip').checked
+            };
+            
+            calculateKakaoQuickFareWithAPI(gangnamAddress, fullAddress, width, length, height, weight, kakaoOptions)
                 .then(apiResult => {
                     if (apiResult.success) {
                         const baseFee = apiResult.data.estimated_fare;
@@ -586,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (useAPI) {
             // API를 통한 실시간 요금 조회
             const gwangjuAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gwangju.address;
-            calculateKakaoQuickFareWithAPI(gwangjuAddress, fullAddress, width, length, height, weight)
+            calculateKakaoQuickFareWithAPI(gwangjuAddress, fullAddress, width, length, height, weight, kakaoOptions)
                 .then(apiResult => {
                     if (apiResult.success) {
                         const baseFee = apiResult.data.estimated_fare;

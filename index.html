@@ -101,6 +101,29 @@
                 </div>
             </div>
             
+            <!-- 카카오T 퀵 옵션 -->
+            <div class="kakao-options" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <h4 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">🚚 카카오T 퀵 옵션</h4>
+                
+                <div style="margin-bottom: 12px;">
+                    <label for="loadingMethod" style="display: block; margin-bottom: 5px; font-size: 14px; color: #555;">상하차 방식</label>
+                    <select id="loadingMethod" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="PICKER">기사님 상하차 (추가 요금)</option>
+                        <option value="USER">고객 직접 상하차 (기본 요금)</option>
+                        <option value="TOGETHER">함께 상하차</option>
+                    </select>
+                    <small style="color: #888; font-size: 12px;">※ 대형(L) 사이즈만 적용됩니다</small>
+                </div>
+                
+                <div style="margin-bottom: 5px;">
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="isRoundTrip" style="margin-right: 5px;" />
+                        왕복 배송
+                    </label>
+                    <small style="color: #888; font-size: 12px; margin-left: 5px;">(바이크/퀵만 가능)</small>
+                </div>
+            </div>
+            
             <button id="calculateBtn" class="calculate-btn">배송비 계산하기</button>
         </div>
         
@@ -216,7 +239,10 @@
                 <p>배송지: <span id="destination">-</span></p>
                 <p>크기: <span id="totalSize">0</span>mm (가로 + 세로 + 높이)</p>
                 <p>중량: <span id="totalWeight">0</span>kg</p>
-                <p style="font-size: 12px; color: #888; margin-top: 10px;">API 상태: <span id="apiStatus">-</span></p>
+                <p style="font-size: 12px; color: #888; margin-top: 10px;">
+                    API 상태: <span id="apiStatus" style="font-weight: bold; color: #27ae60;">-</span>
+                    <br><span id="apiDetails" style="font-size: 11px;"></span>
+                </p>
             </div>
             
             <div class="service-info-section" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">

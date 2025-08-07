@@ -9,7 +9,7 @@ const KAKAO_API_CONFIG = {
 };
 
 // 실시간 요금 조회 함수
-async function getKakaoQuickFare(pickup, dropoff, orderType, size, vehicleType = null) {
+async function getKakaoQuickFare(pickup, dropoff, orderType, size, vehicleType = null, options = {}) {
     try {
         const requestBody = {
             orderType: orderType, // 'QUICK', 'QUICK_ECONOMY', 'QUICK_EXPRESS', 'DOBO'
@@ -47,13 +47,24 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size, vehicleType =
                 fleet: fleet,
                 type: 'MINIMUM'
             };
-            requestBody.pickup.loadingMethod = 'PICKER';
-            requestBody.dropoff.loadingMethod = 'PICKER';
+            
+            // 상하차 방식 설정 (옵션으로 전달받거나 기본값 사용)
+            const loadingMethod = options.loadingMethod || 'PICKER';
+            requestBody.pickup.loadingMethod = loadingMethod;
+            requestBody.dropoff.loadingMethod = loadingMethod;
             
             console.log('L 사이즈 차량 설정:', {
                 vehicleType: vehicleType,
-                fleet: fleet
+                fleet: fleet,
+                loadingMethod: loadingMethod
             });
+        }
+        
+        // 왕복 옵션 추가 (바이크/퀵만 가능)
+        if (options.isRoundTrip && size !== 'L') {
+            requestBody.extraOption = {
+                isRoundTrip: true
+            };
         }
 
         // Netlify Function 엔드포인트 사용 (로컬 및 프로덕션 자동 감지)
@@ -144,7 +155,7 @@ async function getCoordinates(address) {
 }
 
 // 통합 요금 조회 함수
-async function calculateKakaoQuickFareWithAPI(pickupAddress, dropoffAddress, width, length, height, weight) {
+async function calculateKakaoQuickFareWithAPI(pickupAddress, dropoffAddress, width, length, height, weight, options = {}) {
     // 차량 타입과 사이즈 결정
     const vehicleInfo = determineVehicleTypeAndSize(width, length, height, weight);
     
@@ -168,8 +179,8 @@ async function calculateKakaoQuickFareWithAPI(pickupAddress, dropoffAddress, wid
         };
     }
 
-    // API를 통해 실시간 요금 조회 (차량 타입 정보도 전달)
-    const result = await getKakaoQuickFare(pickup, dropoff, vehicleInfo.orderType, vehicleInfo.size, vehicleInfo.vehicleType);
+    // API를 통해 실시간 요금 조회 (차량 타입 정보와 옵션 전달)
+    const result = await getKakaoQuickFare(pickup, dropoff, vehicleInfo.orderType, vehicleInfo.size, vehicleInfo.vehicleType, options);
     
     if (result.success) {
         // 차량 타입 정보 추가
