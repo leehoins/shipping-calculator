@@ -36,7 +36,7 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
         if (size === 'L') {
             requestBody.fleetOption = {
                 fleet: 'TON',
-                type: 'NORMAL'
+                type: 'MINIMUM'
             };
             requestBody.pickup.loadingMethod = 'PICKER';
             requestBody.dropoff.loadingMethod = 'PICKER';
