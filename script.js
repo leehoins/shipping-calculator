@@ -657,6 +657,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // API를 통한 실시간 요금 조회
             const gwangjuAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gwangju.address;
             
+            console.log('광주 출발 계산:', {
+                출발지: gwangjuAddress,
+                도착지: fullAddress,
+                주소입력값: address,
+                상세주소: detailAddress
+            });
+            
             // 먼저 정확한 거리 계산 시도
             Promise.all([
                 calculateKakaoQuickFareWithAPI(gwangjuAddress, fullAddress, width, length, height, weight, kakaoOptions),
