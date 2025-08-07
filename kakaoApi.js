@@ -63,6 +63,14 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
 
         const data = await response.json();
         
+        console.log('KakaoT API 성공 응답:', {
+            totalPrice: data.totalPrice,
+            maximum: data.maximum,
+            minimum: data.minimum,
+            requestedSize: size,
+            requestBody: requestBody
+        });
+        
         return {
             success: true,
             data: {
@@ -152,7 +160,9 @@ async function calculateKakaoQuickFareWithAPI(pickupAddress, dropoffAddress, wid
     if (result.success) {
         // 차량 타입 정보 추가
         result.data.vehicleType = vehicleInfo.vehicleType;
-        result.data.estimated_fare = result.data.totalPrice || result.data.minimum;
+        // minimum을 기본 가격으로 사용 (totalPrice는 추가 옵션이 포함된 경우에만 제공됨)
+        result.data.estimated_fare = result.data.minimum || result.data.totalPrice;
+        console.log('최종 예상 요금:', result.data.estimated_fare, '(minimum:', result.data.minimum, ', totalPrice:', result.data.totalPrice, ')');
     }
     
     return result;
