@@ -467,6 +467,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const isJeju = fullAddress.includes('제주');
         const isIsland = fullAddress.includes('도서') || fullAddress.includes('울릉') || fullAddress.includes('거제');
         
+        // 카카오T 퀵 옵션 가져오기
+        const kakaoOptions = {
+            loadingMethod: document.getElementById('loadingMethod').value,
+            isRoundTrip: document.getElementById('isRoundTrip').checked
+        };
+        
         // 마크업 계산 함수
         const calculateWithMarkup = (base) => {
             if (typeof base === 'number') {
@@ -535,12 +541,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (useAPI) {
             // API를 통한 실시간 요금 조회
             const gangnamAddress = SHIPPING_CONFIG.DEPARTURE_LOCATIONS.gangnam.address;
-            
-            // 카카오T 퀵 옵션 가져오기
-            const kakaoOptions = {
-                loadingMethod: document.getElementById('loadingMethod').value,
-                isRoundTrip: document.getElementById('isRoundTrip').checked
-            };
             
             calculateKakaoQuickFareWithAPI(gangnamAddress, fullAddress, width, length, height, weight, kakaoOptions)
                 .then(apiResult => {
