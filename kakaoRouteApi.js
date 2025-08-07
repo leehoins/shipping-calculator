@@ -22,6 +22,11 @@ const KAKAO_ROUTE_API = {
                 }
             }
             
+            console.log('Route API 호출:', {
+                origin: { address: origin.address, lat: origin.lat, lng: origin.lng },
+                destination: { address: destination.address, lat: destination.lat, lng: destination.lng }
+            });
+            
             // Netlify Function 엔드포인트 사용
             const functionUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:8888/.netlify/functions/kakao-route'
@@ -89,6 +94,11 @@ const KAKAO_ROUTE_API = {
 // 개선된 거리 계산 함수
 async function getAccurateDistance(originAddress, destinationAddress) {
     try {
+        console.log('getAccurateDistance 호출:', {
+            from: originAddress,
+            to: destinationAddress
+        });
+        
         // 1. 먼저 카카오 길찾기 API로 정확한 도로 거리 시도
         const routeResult = await KAKAO_ROUTE_API.getRouteDistance(
             { address: originAddress },
