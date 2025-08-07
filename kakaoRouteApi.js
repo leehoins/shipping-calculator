@@ -22,9 +22,17 @@ const KAKAO_ROUTE_API = {
                 }
             }
             
-            console.log('Route API 호출:', {
-                origin: { address: origin.address, lat: origin.lat, lng: origin.lng },
-                destination: { address: destination.address, lat: destination.lat, lng: destination.lng }
+            console.log('Route API 호출 상세:', {
+                origin: { 
+                    address: origin.address || '주소 없음', 
+                    lat: origin.lat, 
+                    lng: origin.lng 
+                },
+                destination: { 
+                    address: destination.address || '주소 없음', 
+                    lat: destination.lat, 
+                    lng: destination.lng 
+                }
             });
             
             // Netlify Function 엔드포인트 사용
@@ -44,7 +52,8 @@ const KAKAO_ROUTE_API = {
             });
             
             if (!response.ok) {
-                console.error('Route API 오류:', response.status);
+                const errorText = await response.text();
+                console.error('Route API 오류:', response.status, errorText);
                 return null;
             }
             
