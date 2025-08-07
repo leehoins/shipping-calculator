@@ -129,8 +129,11 @@ async function getAccurateDistance(originAddress, destinationAddress) {
             const straightDistance = KAKAO_ROUTE_API.calculateStraightDistance(
                 origin.lat, origin.lng, dest.lat, dest.lng
             );
-            console.log(`예상 거리 (직선거리 기반): ${straightDistance}km`);
-            return straightDistance;
+            
+            // 같은 주소이거나 거리가 너무 짧으면 최소 거리 적용
+            const minDistance = Math.max(straightDistance, 5);
+            console.log(`예상 거리 (직선거리 기반): ${straightDistance}km → 적용: ${minDistance}km`);
+            return minDistance;
         }
         
         // 3. 모두 실패시 기존 거리 데이터 사용
