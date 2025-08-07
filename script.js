@@ -529,11 +529,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (apiResult.success) {
                         const baseFee = apiResult.data.estimated_fare;
                         const result = calculateWithMarkup(baseFee);
+                        // 거리는 로컬에서 계산
+                        const distance = shippingCalculator.estimateDistance('gangnam', fullAddress);
                         document.getElementById('kakaoGangnamBase').textContent = formatCurrency(result.base);
                         document.getElementById('kakaoGangnamMarkup').textContent = formatCurrency(result.markup);
                         document.getElementById('kakaoGangnamTotal').textContent = formatCurrency(result.total);
                         document.getElementById('kakaoGangnamMarkupPercent').textContent = markupPercent;
-                        document.getElementById('kakaoGangnamDistance').textContent = `약 ${apiResult.data.distance || '계산중'}km (API)`;
+                        document.getElementById('kakaoGangnamDistance').textContent = `약 ${distance}km (API)`;
                         document.getElementById('kakaoGangnamVehicleType').textContent = apiResult.data.vehicleType;
                         document.getElementById('kakaoGangnamPriceDetail').textContent = '실시간 요금';
                         document.getElementById('kakaoGangnamCard').classList.remove('disabled');
@@ -589,11 +591,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (apiResult.success) {
                         const baseFee = apiResult.data.estimated_fare;
                         const result = calculateWithMarkup(baseFee);
+                        // 거리는 로컬에서 계산
+                        const distance = shippingCalculator.estimateDistance('gwangju', fullAddress);
                         document.getElementById('kakaoGwangjuBase').textContent = formatCurrency(result.base);
                         document.getElementById('kakaoGwangjuMarkup').textContent = formatCurrency(result.markup);
                         document.getElementById('kakaoGwangjuTotal').textContent = formatCurrency(result.total);
                         document.getElementById('kakaoGwangjuMarkupPercent').textContent = markupPercent;
-                        document.getElementById('kakaoGwangjuDistance').textContent = `약 ${apiResult.data.distance || '계산중'}km (API)`;
+                        document.getElementById('kakaoGwangjuDistance').textContent = `약 ${distance}km (API)`;
                         document.getElementById('kakaoGwangjuVehicleType').textContent = apiResult.data.vehicleType;
                         document.getElementById('kakaoGwangjuPriceDetail').textContent = '실시간 요금';
                         document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
