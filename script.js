@@ -13,38 +13,22 @@ const shippingCalculator = {
             return { error: "우체국 택배 중량 제한을 초과했습니다. (30kg 이하)" };
         }
         
-        // 크기별 요금 (기본 요금 설정)
-        let sizeFee = 0;
-        if (totalSize <= 60) {
-            sizeFee = 4000;
-        } else if (totalSize <= 80) {
-            sizeFee = 5000;
-        } else if (totalSize <= 100) {
-            sizeFee = 6000;
-        } else if (totalSize <= 120) {
-            sizeFee = 7000;
-        } else if (totalSize <= 140) {
-            sizeFee = 8000;
-        } else {
-            sizeFee = 9000;
-        }
+        // 2025년 우체국 택배 실제 요금 체계
+        let baseFee = 0;
         
-        // 중량별 요금
-        let weightFee = 0;
-        if (weight <= 2) {
-            weightFee = 4000;
-        } else if (weight <= 5) {
-            weightFee = 5000;
-        } else if (weight <= 10) {
-            weightFee = 6000;
-        } else if (weight <= 20) {
-            weightFee = 8000;
+        // 크기와 중량을 모두 고려한 요금 적용
+        if (weight <= 5 && totalSize <= 80) {
+            baseFee = 5000; // 5kg 이하, 80cm 이하
+        } else if (weight <= 10 && totalSize <= 100) {
+            baseFee = 8000; // 10kg 이하, 100cm 이하
+        } else if (weight <= 20 && totalSize <= 120) {
+            baseFee = 10000; // 20kg 이하, 120cm 이하
+        } else if (weight <= 30 && totalSize <= 160) {
+            baseFee = 14000; // 30kg 이하, 160cm 이하
         } else {
-            weightFee = 10000;
+            // 크기나 중량이 초과된 경우 가장 높은 요금 적용
+            baseFee = 14000;
         }
-        
-        // 크기와 중량 중 높은 요금 적용
-        let baseFee = Math.max(sizeFee, weightFee);
         
         // 제주 지역 할증 (약 50%)
         if (isJeju) {
@@ -135,14 +119,14 @@ const shippingCalculator = {
         let priceDetail = '';
         
         if (vehicleType.name === "퀵/바이크") {
-            // 바이크: 3km까지 5,900원, 이후 km당 1,000원
-            if (distance <= 3) {
-                baseFee = 5900;
-                priceDetail = "기본 3km: ₩5,900";
+            // 바이크: 5km까지 12,000원, 이후 km당 1,200원 (실제 시세 반영)
+            if (distance <= 5) {
+                baseFee = 12000;
+                priceDetail = "기본 5km: ₩12,000";
             } else {
-                const extraKm = Math.ceil(distance - 3);
-                baseFee = 5900 + extraKm * 1000;
-                priceDetail = `기본 3km: ₩5,900 + 추가 ${extraKm}km × ₩1,000`;
+                const extraKm = Math.ceil(distance - 5);
+                baseFee = 12000 + extraKm * 1200;
+                priceDetail = `기본 5km: ₩12,000 + 추가 ${extraKm}km × ₩1,200`;
             }
         } else if (vehicleType.name === "다마스") {
             // 다마스: 5km까지 19,000원, 이후 km당 1,500원
@@ -494,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('postOfficeCard').classList.remove('disabled');
             
             // 계산 기준 표시
-            const volumeWeight = Math.ceil((width * length * height) / 6000);
+            const volumeWeight = Math.ceil((width * length * height) / 5000);
             const actualWeight = Math.ceil(weight);
             const appliedWeight = Math.max(volumeWeight, actualWeight);
             const calcInfo = `부피중량: ${volumeWeight}kg, 실중량: ${actualWeight}kg → 적용: ${appliedWeight}kg${isJeju ? ' (제주 할증)' : ''}`;
