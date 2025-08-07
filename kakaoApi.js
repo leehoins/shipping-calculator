@@ -35,7 +35,7 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
         // 대형(L) 사이즈일 경우 필수 필드 추가
         if (size === 'L') {
             requestBody.fleetOption = {
-                fleet: 'TRUCK',
+                fleet: 'TON',
                 type: 'NORMAL'
             };
             requestBody.pickup.loadingMethod = 'PICKER';
