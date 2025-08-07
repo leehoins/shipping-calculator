@@ -492,11 +492,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('postOfficeTotal').textContent = formatCurrency(result.total);
             document.getElementById('postOfficeMarkupPercent').textContent = markupPercent;
             document.getElementById('postOfficeCard').classList.remove('disabled');
+            
+            // 계산 기준 표시
+            const volumeWeight = Math.ceil((width * length * height) / 6000);
+            const actualWeight = Math.ceil(weight);
+            const appliedWeight = Math.max(volumeWeight, actualWeight);
+            const calcInfo = `부피중량: ${volumeWeight}kg, 실중량: ${actualWeight}kg → 적용: ${appliedWeight}kg${isJeju ? ' (제주 할증)' : ''}`;
+            document.getElementById('postOfficeCalcInfo').textContent = calcInfo;
         } else {
             document.getElementById('postOfficeBase').textContent = postOfficeBase.error;
             document.getElementById('postOfficeMarkup').textContent = '-';
             document.getElementById('postOfficeTotal').textContent = '-';
             document.getElementById('postOfficeCard').classList.add('disabled');
+            document.getElementById('postOfficeCalcInfo').textContent = '계산 불가';
         }
         
         // 경동택배 화물 계산
@@ -506,6 +514,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gyeongdongMarkup').textContent = formatCurrency(gyeongdongResult.markup);
         document.getElementById('gyeongdongTotal').textContent = formatCurrency(gyeongdongResult.total);
         document.getElementById('gyeongdongMarkupPercent').textContent = markupPercent;
+        
+        // 계산 기준 표시
+        const gyeongdongCalcInfo = `실중량: ${weight}kg, 구간요금제${isIsland ? ' (도서 할증 20%)' : ''}`;
+        document.getElementById('gyeongdongCalcInfo').textContent = gyeongdongCalcInfo;
         
         // 카카오T 퀵 - 강남 출발
         // API 사용 가능 여부 확인
@@ -557,6 +569,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('kakaoGangnamVehicleType').textContent = apiResult.data.vehicleType;
                         document.getElementById('kakaoGangnamPriceDetail').textContent = '실시간 요금';
                         document.getElementById('kakaoGangnamCard').classList.remove('disabled');
+                        
+                        // 계산 기준 표시
+                        const loadingText = kakaoOptions.loadingMethod === 'USER' ? '고객 직접' : 
+                                          kakaoOptions.loadingMethod === 'TOGETHER' ? '함께' : '기사님';
+                        const roundTripText = kakaoOptions.isRoundTrip ? ', 왕복' : '';
+                        document.getElementById('kakaoGangnamCalcInfo').textContent = 
+                            `API 실시간 요금 (${loadingText} 상하차${roundTripText})`;
                     } else {
                         // API 실패시 기존 로직 사용
                         console.log('API 실패, 기존 계산 방식 사용:', apiResult.error);
@@ -589,6 +608,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById(prefix + 'VehicleType').textContent = result.vehicleType;
                 document.getElementById(prefix + 'PriceDetail').textContent = result.priceDetail || '';
                 document.getElementById(prefix + 'Card').classList.remove('disabled');
+                
+                // 계산 기준 표시
+                document.getElementById(prefix + 'CalcInfo').textContent = 
+                    `거리기반 계산 (기본료 + ${result.distance}km × km당 요금)`;
             } else {
                 document.getElementById(prefix + 'Base').textContent = result.error;
                 document.getElementById(prefix + 'Markup').textContent = '-';
@@ -597,6 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById(prefix + 'VehicleType').textContent = result.vehicleType || '서비스 불가';
                 document.getElementById(prefix + 'PriceDetail').textContent = '-';
                 document.getElementById(prefix + 'Card').classList.add('disabled');
+                document.getElementById(prefix + 'CalcInfo').textContent = '계산 불가';
             }
         }
         
@@ -619,6 +643,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('kakaoGwangjuVehicleType').textContent = apiResult.data.vehicleType;
                         document.getElementById('kakaoGwangjuPriceDetail').textContent = '실시간 요금';
                         document.getElementById('kakaoGwangjuCard').classList.remove('disabled');
+                        
+                        // 계산 기준 표시
+                        const loadingText2 = kakaoOptions.loadingMethod === 'USER' ? '고객 직접' : 
+                                           kakaoOptions.loadingMethod === 'TOGETHER' ? '함께' : '기사님';
+                        const roundTripText2 = kakaoOptions.isRoundTrip ? ', 왕복' : '';
+                        document.getElementById('kakaoGwangjuCalcInfo').textContent = 
+                            `API 실시간 요금 (${loadingText2} 상하차${roundTripText2})`;
                     } else {
                         // API 실패시 기존 로직 사용
                         console.log('API 실패, 기존 계산 방식 사용:', apiResult.error);
