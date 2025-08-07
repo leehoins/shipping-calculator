@@ -9,7 +9,7 @@ const KAKAO_API_CONFIG = {
 };
 
 // 실시간 요금 조회 함수
-async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
+async function getKakaoQuickFare(pickup, dropoff, orderType, size, vehicleType = null) {
     try {
         const requestBody = {
             orderType: orderType, // 'QUICK', 'QUICK_ECONOMY', 'QUICK_EXPRESS', 'DOBO'
@@ -34,13 +34,26 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
 
         // 대형(L) 사이즈일 경우 필수 필드 추가
         if (size === 'L') {
+            let fleet = 'TON'; // 기본값
+            
+            // vehicleType이 전달된 경우 그에 맞는 fleet 설정
+            if (vehicleType === '다마스') {
+                fleet = 'DAMAS';
+            } else if (vehicleType === '라보') {
+                fleet = 'LABO';
+            }
+            
             requestBody.fleetOption = {
-                fleet: 'TON',
+                fleet: fleet,
                 type: 'MINIMUM'
             };
-            // loadingMethod를 USER로 변경해보기 (셀프 상하차)
-            requestBody.pickup.loadingMethod = 'USER';
-            requestBody.dropoff.loadingMethod = 'USER';
+            requestBody.pickup.loadingMethod = 'PICKER';
+            requestBody.dropoff.loadingMethod = 'PICKER';
+            
+            console.log('L 사이즈 차량 설정:', {
+                vehicleType: vehicleType,
+                fleet: fleet
+            });
         }
 
         // Netlify Function 엔드포인트 사용 (로컬 및 프로덕션 자동 감지)
@@ -155,15 +168,15 @@ async function calculateKakaoQuickFareWithAPI(pickupAddress, dropoffAddress, wid
         };
     }
 
-    // API를 통해 실시간 요금 조회
-    const result = await getKakaoQuickFare(pickup, dropoff, vehicleInfo.orderType, vehicleInfo.size);
+    // API를 통해 실시간 요금 조회 (차량 타입 정보도 전달)
+    const result = await getKakaoQuickFare(pickup, dropoff, vehicleInfo.orderType, vehicleInfo.size, vehicleInfo.vehicleType);
     
     if (result.success) {
         // 차량 타입 정보 추가
         result.data.vehicleType = vehicleInfo.vehicleType;
         // minimum을 기본 가격으로 사용 (totalPrice는 추가 옵션이 포함된 경우에만 제공됨)
         result.data.estimated_fare = result.data.minimum || result.data.totalPrice;
-        console.log('최종 예상 요금:', result.data.estimated_fare, '(minimum:', result.data.minimum, ', totalPrice:', result.data.totalPrice, ')');
+        console.log('최종 예상 요금:', result.data.estimated_fare, '(minimum:', result.data.minimum, ', totalPrice:', result.data.totalPrice, ', vehicleType:', vehicleInfo.vehicleType, ')');
     }
     
     return result;
