@@ -22,21 +22,20 @@ const KAKAO_ROUTE_API = {
                 }
             }
             
-            // 카카오 모빌리티 API 호출
-            const url = `https://apis-navi.kakaomobility.com/v1/directions`;
-            const params = new URLSearchParams({
-                origin: `${origin.lng},${origin.lat}`,
-                destination: `${destination.lng},${destination.lat}`,
-                priority: 'DISTANCE', // DISTANCE(최단거리) or TIME(최단시간)
-                car_fuel: 'GASOLINE',
-                car_hipass: false,
-                alternatives: false
-            });
+            // Netlify Function 엔드포인트 사용
+            const functionUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:8888/.netlify/functions/kakao-route'
+                : '/.netlify/functions/kakao-route';
             
-            const response = await fetch(`${url}?${params}`, {
+            const response = await fetch(functionUrl, {
+                method: 'POST',
                 headers: {
-                    'Authorization': `KakaoAK ${this.REST_KEY}`
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    origin: { lat: origin.lat, lng: origin.lng },
+                    destination: { lat: destination.lat, lng: destination.lng }
+                })
             });
             
             if (!response.ok) {
@@ -46,15 +45,15 @@ const KAKAO_ROUTE_API = {
             
             const data = await response.json();
             
-            if (data.routes && data.routes.length > 0) {
-                const route = data.routes[0];
-                const distanceInMeters = route.summary.distance;
-                const distanceInKm = Math.round(distanceInMeters / 1000);
-                const duration = Math.round(route.summary.duration / 60); // 분 단위
-                
+            if (data.error) {
+                console.error('Route API 에러:', data.error);
+                return null;
+            }
+            
+            if (data.distance && data.exact) {
                 return {
-                    distance: distanceInKm,
-                    duration: duration,
+                    distance: data.distance,
+                    duration: data.duration,
                     exact: true // 정확한 도로 거리임을 표시
                 };
             }
