@@ -38,8 +38,9 @@ async function getKakaoQuickFare(pickup, dropoff, orderType, size) {
                 fleet: 'TON',
                 type: 'MINIMUM'
             };
-            requestBody.pickup.loadingMethod = 'PICKER';
-            requestBody.dropoff.loadingMethod = 'PICKER';
+            // loadingMethod를 USER로 변경해보기 (셀프 상하차)
+            requestBody.pickup.loadingMethod = 'USER';
+            requestBody.dropoff.loadingMethod = 'USER';
         }
 
         // Netlify Function 엔드포인트 사용 (로컬 및 프로덕션 자동 감지)
